@@ -1,0 +1,19 @@
+STORAGE: 
+  ENGINE: POSTGRES
+  USERHOST: localhost
+  FRIENDHOST: localhost
+  RECIPEHOST: localhost
+  PORT: 5432
+  USERNAME: recipe
+  FRIENDNAME: recipe_friends
+  RECIPENAME: recipes
+  USERUSERNAME: recipez
+  USERPASSWORD: recipez
+  FRIENDUSERNAME: recipez
+  FRIENDPASSWORD: recipez
+  RECIPEUSERNAME: recipez
+  RECIPEPASSWORD: recipez
+
+SERVER:
+  HOST: localhost
+  PORT: 8080

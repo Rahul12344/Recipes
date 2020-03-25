@@ -26,20 +26,26 @@ type RefreshToken struct {
 // User user struct
 type User struct {
 	gorm.Model
-	FirstName   string   `json:"fname"`
-	LastName    string   `json:"lname"`
-	Email       string   `json:"email"`
-	Username    string   `json:"username"`
-	Password    string   `json:"password"`
-	PhoneNumber string   `json:"phonenumber"`
-	ProfilePic  string   `json:"profilepic"`
-	UUID        string   `json:"uuid"`
-	Lat         float64  `json:"lat"`
-	Lon         float64  `json:"lon"`
-	Interests   string   `json:"interests"`
-	Clubs       string   `json:"clubs"`
-	Bio         string   `json:"bio"`
-	Recipes     []string `json:"recipes"`
+	FirstName   string  `json:"fname"`
+	LastName    string  `json:"lname"`
+	Email       string  `json:"email"`
+	Username    string  `json:"username"`
+	Password    string  `json:"password"`
+	PhoneNumber string  `json:"phonenumber"`
+	ProfilePic  string  `json:"profilepic"`
+	UUID        string  `json:"uuid"`
+	Lat         float64 `json:"lat"`
+	Lon         float64 `json:"lon"`
+	Interests   string  `json:"interests"`
+	Clubs       string  `json:"clubs"`
+	Bio         string  `json:"bio"`
+	Recipes     string  `json:"recipes"`
+}
+
+//RecipePointer holds relationship between recipes and users
+type RecipePointer struct {
+	Adder  string `json:"adder"`
+	Recipe string `json:"recipe"`
 }
 
 // Friends structure of friend
@@ -66,10 +72,10 @@ type FriendRequest struct {
 type Recipe struct {
 	Name         string   `json:"name"`
 	Description  string   `json:"description"`
-	Ingredients  []string `json:"ingredients"`
-	Instructions []string `json:"instructions"`
-	Quantities   []string `json:"quantities"`
-	Materials    []string `json:"materials"`
+	Ingredients  []string `gorm:"type:varchar(64)[]" json:"ingredients"`
+	Instructions []string `gorm:"type:varchar(64)[]" json:"instructions"`
+	Quantities   string   `json:"quantities"`
+	Materials    string   `json:"materials"`
 	Tag          string   `json:"tag"`
 	UUID         string   `json:"uuid"`
 }

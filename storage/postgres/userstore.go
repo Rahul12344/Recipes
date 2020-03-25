@@ -13,33 +13,33 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// Authorization handles authorization flow for users
-type Authorization struct {
+// UserStore handles authorization flow for users and user functionality
+type UserStore struct {
 	client *gorm.DB
 }
 
-// NewAuthorization Postgresql client
-func NewAuthorization(client *gorm.DB) *Authorization {
-	return &Authorization{
+// NewUserStore Postgresql client
+func NewUserStore(client *gorm.DB) *UserStore {
+	return &UserStore{
 		client: client,
 	}
 }
 
-func (auth *Authorization) create() {
+func (us *UserStore) create() {
 	/* TODO: Maybe change migration model to maybe define DB relationships */
-	auth.client.AutoMigrate(&models.User{})
+	us.client.AutoMigrate(&models.User{})
 }
 
 // GET gets user for login
-func (auth *Authorization) GET(key string, password string) (map[string]interface{}, string, string, time.Time, time.Time) {
-	resp, token, refreshToken, expirationTime, refreshTokenExpirationTime := auth.findUser(key, password)
+func (us *UserStore) GET(key string, password string) (map[string]interface{}, string, string, time.Time, time.Time) {
+	resp, token, refreshToken, expirationTime, refreshTokenExpirationTime := us.findUser(key, password)
 	return resp, token, refreshToken, expirationTime, refreshTokenExpirationTime
 }
 
-func (auth *Authorization) findUser(email, password string) (map[string]interface{}, string, string, time.Time, time.Time) {
+func (us *UserStore) findUser(email, password string) (map[string]interface{}, string, string, time.Time, time.Time) {
 	user := &models.User{}
 
-	if err := auth.client.Where("Email = ?", email).First(user).Error; err != nil {
+	if err := us.client.Where("Email = ?", email).First(user).Error; err != nil {
 		var resp = map[string]interface{}{"status": false, "message": "Email address not found"}
 		return resp, "", "", time.Time{}, time.Time{}
 	}
@@ -112,7 +112,7 @@ func generateRandomBytes(n int) ([]byte, error) {
 }
 
 // PUT puts user into postgres
-func (auth *Authorization) PUT(email string, password string, firstname string, lastname string) (bool, error) {
+func (us *UserStore) PUT(email string, password string, firstname string, lastname string) (bool, error) {
 	pass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		fmt.Println(err)
@@ -123,20 +123,20 @@ func (auth *Authorization) PUT(email string, password string, firstname string, 
 	user.FirstName = firstname
 	user.LastName = lastname
 	user.UUID = uuid.UUID()
-	if !auth.client.NewRecord(user) {
+	if !us.client.NewRecord(user) {
 		return false, nil
 	}
-	auth.client.Create(user)
-	if auth.client.NewRecord(user) {
+	us.client.Create(user)
+	if us.client.NewRecord(user) {
 		return false, nil
 	}
 	return true, nil
 }
 
 // SET sets updated fields
-func (auth *Authorization) SET(email string, uuid string, userModded *models.User) (map[string]interface{}, error) {
+func (us *UserStore) SET(email string, uuid string, userModded *models.User) (map[string]interface{}, error) {
 	var user models.User
-	if err := auth.client.Where("EMAIL = ? AND UUID = ?", email, uuid).Find(&user); err != nil {
+	if err := us.client.Where("EMAIL = ? AND UUID = ?", email, uuid).Find(&user); err != nil {
 	}
 
 	fname := userModded.FirstName
@@ -176,9 +176,9 @@ func (auth *Authorization) SET(email string, uuid string, userModded *models.Use
 	user.Clubs = clubs
 	user.Lat = lat
 	user.Lon = lon
-	auth.client.Save(&user)
+	us.client.Save(&user)
 
-	if err := auth.client.Where("EMAIL = ? AND UUID = ?", email, uuid).Find(&user); err != nil {
+	if err := us.client.Where("EMAIL = ? AND UUID = ?", email, uuid).Find(&user); err != nil {
 	}
 
 	var resp = map[string]interface{}{"status": false, "message": "logged in"}
@@ -188,14 +188,14 @@ func (auth *Authorization) SET(email string, uuid string, userModded *models.Use
 }
 
 // DEL dels clients
-func (auth *Authorization) DEL(key string, password string) (bool, error) {
+func (us *UserStore) DEL(key string, password string) (bool, error) {
 	return true, nil
 }
 
 //REFRESH generates a new refresh token for the authenticated client
-func (auth *Authorization) REFRESH(uuid string) (map[string]interface{}, string, time.Time) {
+func (us *UserStore) REFRESH(uuid string) (map[string]interface{}, string, time.Time) {
 	user := &models.User{}
-	if err := auth.client.Where("UUID = ?", uuid).First(user).Error; err != nil {
+	if err := us.client.Where("UUID = ?", uuid).First(user).Error; err != nil {
 		var resp = map[string]interface{}{"status": false, "message": "UUID not found"}
 		return resp, "", time.Time{}
 	}
