@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Rahul12344/Recipes/models"
+	"github.com/Rahul12344/Recipes/util/curruser"
 	"github.com/gorilla/mux"
 )
 
@@ -16,6 +17,8 @@ type UserService interface {
 	PUT(email string, password string, firstName string, lastName string) (bool, error)
 	DEL(username string, password string) (bool, error)
 	REFRESH(uuid string) (map[string]interface{}, string, time.Time)
+	ADD(uuid string, recipe *models.Recipe)
+	REMOVE(uuid string, recipe *models.Recipe)
 }
 
 // UserController controls user actions
@@ -38,8 +41,8 @@ func (uc *UserController) Setup(r *mux.Router) {
 
 // VerifiedSetup sets up handlers
 func (uc *UserController) VerifiedSetup(r *mux.Router) {
-	r.HandleFunc("/login", uc.Login).Methods("POST")
-	r.HandleFunc("/signup", uc.Signup).Methods("POST")
+	r.HandleFunc("/addrecipe", uc.AddRecipe).Methods("POST")
+	r.HandleFunc("/removerecipe", uc.RemoveRecipe).Methods("POST")
 }
 
 // Login login users and provides authentication token for user
@@ -69,4 +72,26 @@ func (uc *UserController) Signup(w http.ResponseWriter, r *http.Request) {
 	if token != "" {
 		json.NewEncoder(w).Encode(resp)
 	}
+}
+
+// AddRecipe adds recipe
+func (uc *UserController) AddRecipe(w http.ResponseWriter, r *http.Request) {
+	var recipe models.Recipe
+	decoder := json.NewDecoder(r.Body)
+	decoder.Decode(&recipe)
+
+	uuid := curruser.GetCurrUser(w, r)
+
+	uc.User.ADD(uuid, &recipe)
+}
+
+// RemoveRecipe removes recipe
+func (uc *UserController) RemoveRecipe(w http.ResponseWriter, r *http.Request) {
+	var recipe models.Recipe
+	decoder := json.NewDecoder(r.Body)
+	decoder.Decode(&recipe)
+
+	uuid := curruser.GetCurrUser(w, r)
+
+	uc.User.REMOVE(uuid, &recipe)
 }

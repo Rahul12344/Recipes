@@ -15,7 +15,7 @@ type FriendService interface {
 	ACCEPT(currUUID string, friendUUID string) (*models.Friends, error)
 }
 
-// FriendController controls friend actions
+// FriendController controls friend actions for users
 type FriendController struct {
 	Friends FriendService
 }

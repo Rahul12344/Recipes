@@ -29,3 +29,11 @@ func (urs *UserRecipeStore) ADD(uuid string, recipe *models.Recipe) {
 		Recipe: recipe.UUID,
 	})
 }
+
+//REMOVE removes recipe from user
+func (urs *UserRecipeStore) REMOVE(uuid string, recipe *models.Recipe) {
+	urs.client.Delete(models.RecipePointer{
+		Adder:  uuid,
+		Recipe: recipe.UUID,
+	})
+}

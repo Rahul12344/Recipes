@@ -18,6 +18,7 @@ type UserStore interface {
 //UserRecipeStore user recipe store
 type UserRecipeStore interface {
 	ADD(uuid string, recipe *models.Recipe)
+	REMOVE(uuid string, recipe *models.Recipe)
 }
 
 //UserService holds services for users
@@ -62,4 +63,9 @@ func (as *UserService) REFRESH(uuid string) (map[string]interface{}, string, tim
 //ADD add user recipe
 func (as *UserService) ADD(uuid string, recipe *models.Recipe) {
 	as.userRecipeStore.ADD(uuid, recipe)
+}
+
+//REMOVE removes user recipe
+func (as *UserService) REMOVE(uuid string, recipe *models.Recipe) {
+	as.userRecipeStore.REMOVE(uuid, recipe)
 }

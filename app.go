@@ -42,6 +42,7 @@ func ExecuteServer(config Config) {
 			config.Storage.RecipePassword)
 
 	}
+
 	userStore := postgres.NewUserStore(userDB)
 	userRecipeStore := postgres.NewUserRecipeStore(userDB)
 	friendStore := postgres.NewFriendStore(friendDB)
