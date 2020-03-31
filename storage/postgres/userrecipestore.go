@@ -27,6 +27,7 @@ func (urs *UserRecipeStore) ADD(uuid string, recipe *models.Recipe) {
 	urs.client.Create(models.RecipePointer{
 		Adder:  uuid,
 		Recipe: recipe.UUID,
+		Hits:   0,
 	})
 }
 

@@ -1,6 +1,7 @@
 package expand
 
 /* Constructs matchers that use regex and word assocs to expand and connect words */
+/* Ping API to check if food word */
 
 // Associations constructs associations, final form of functionality
 type Associations struct {

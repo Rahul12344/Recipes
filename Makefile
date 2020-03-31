@@ -12,4 +12,5 @@ clean:
 	rm -rf bin/BConnect-backend
 
 test:
+	./test.sh
 	go test -v ./...

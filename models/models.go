@@ -46,6 +46,7 @@ type User struct {
 type RecipePointer struct {
 	Adder  string `json:"adder"`
 	Recipe string `json:"recipe"`
+	Hits   int    `json:"hits"`
 }
 
 // Friends structure of friend

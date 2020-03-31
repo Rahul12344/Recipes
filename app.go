@@ -52,14 +52,19 @@ func ExecuteServer(config Config) {
 
 	userService := services.NewUserService(userStore, userRecipeStore)
 	friendService := services.NewFriendService(friendStore)
+	recipeService := services.NewRecipeService(recipeStore)
 
 	uc := controllers.NewUserController(userService)
 	fc := controllers.NewFriendController(friendService)
+	rc := controllers.NewRecipeController(recipeService)
+	ic := controllers.NewImageController()
 
 	r, s := setupHandlers()
 	uc.Setup(r)
+	rc.Setup(r)
 	uc.VerifiedSetup(s)
 	fc.Setup(s)
+	ic.Setup(s)
 
 	log.Fatal(http.ListenAndServe(":8080", handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization", "Access-Control-Allow-Origin"}),
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(r)))

@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"github.com/Rahul12344/Recipes/models"
+	"github.com/Rahul12344/Recipes/util/parsing"
 	"github.com/jinzhu/gorm"
 )
 
@@ -23,6 +24,23 @@ func (rs *RecipeStore) create() {
 }
 
 // FIND finds matching recipes
-func (rs *RecipeStore) FIND(matches *models.Recipe) []*models.Recipe {
+func (rs *RecipeStore) FIND(image bool, matches *models.Recipe) []*models.Recipe {
 	return nil
+}
+
+//INGREDIENTS create recipe model
+func (rs *RecipeStore) INGREDIENTS(ingredients []string) *models.Recipe {
+	return &models.Recipe{
+		Ingredients: ingredients,
+	}
+}
+
+//IMAGE create recipe model
+func (rs *RecipeStore) IMAGE(filename string) *models.Recipe {
+	parsing := parsing.NewParser()
+	ingredients := parsing.Detect(filename)
+
+	return &models.Recipe{
+		Ingredients: ingredients,
+	}
 }
