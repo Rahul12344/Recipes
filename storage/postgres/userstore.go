@@ -1,14 +1,8 @@
 package postgres
 
 import (
-	"crypto/rand"
-	"encoding/base64"
-	"fmt"
-	"time"
-
 	"github.com/Rahul12344/Recipes/models"
-	"github.com/Rahul12344/Recipes/util/uuid"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/Rahul12344/Recipes/util/errors"
 	"github.com/jinzhu/gorm"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -31,98 +25,28 @@ func (us *UserStore) create() {
 }
 
 // GET gets user for login
-func (us *UserStore) GET(key string, password string) (map[string]interface{}, string, string, time.Time, time.Time) {
-	resp, token, refreshToken, expirationTime, refreshTokenExpirationTime := us.findUser(key, password)
-	return resp, token, refreshToken, expirationTime, refreshTokenExpirationTime
+func (us *UserStore) GET(key string, password string) (*models.User, *errors.Errors) {
+	user, err := us.findUser(key, password)
+	return user, err
 }
 
-func (us *UserStore) findUser(email, password string) (map[string]interface{}, string, string, time.Time, time.Time) {
+func (us *UserStore) findUser(email, password string) (*models.User, *errors.Errors) {
 	user := &models.User{}
 
 	if err := us.client.Where("Email = ?", email).First(user).Error; err != nil {
-		var resp = map[string]interface{}{"status": false, "message": "Email address not found"}
-		return resp, "", "", time.Time{}, time.Time{}
+		return nil, nil
 	}
-
-	expiresAt := time.Now().Add(time.Minute * 15)
 
 	errf := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if errf != nil && errf == bcrypt.ErrMismatchedHashAndPassword {
-		var resp = map[string]interface{}{"status": false, "message": "Invalid login credentials"}
-		return resp, "", "", time.Time{}, time.Time{}
+		return nil, nil
 	}
 
-	tk := &models.Token{
-		UUID:  user.UUID,
-		Email: user.Email,
-		StandardClaims: &jwt.StandardClaims{
-			ExpiresAt: expiresAt.Unix(),
-		},
-	}
-	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), tk)
-
-	tokenString, error := token.SignedString([]byte("secret"))
-	if error != nil {
-		fmt.Println(error)
-	}
-
-	refreshString, err := generateRandomString(32)
-	if err != nil {
-
-	}
-
-	refreshExpiresAt := time.Now().Add(time.Hour * 144)
-
-	refreshTk := &models.RefreshToken{
-		UUID: user.UUID,
-		ID:   refreshString,
-		StandardClaims: &jwt.StandardClaims{
-			ExpiresAt: refreshExpiresAt.Unix(),
-		},
-	}
-
-	refreshToken := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), refreshTk)
-
-	refreshTokenString, error := refreshToken.SignedString([]byte("secret"))
-	if error != nil {
-		fmt.Println(error)
-	}
-
-	var resp = map[string]interface{}{"status": false, "message": "logged in"}
-	resp["token"] = tokenString
-	resp["refresh"] = refreshTokenString
-	resp["user"] = user
-
-	return resp, tokenString, refreshTokenString, expiresAt, refreshExpiresAt
-}
-
-func generateRandomString(s int) (string, error) {
-	b, err := generateRandomBytes(s)
-	return base64.URLEncoding.EncodeToString(b), err
-}
-
-func generateRandomBytes(n int) ([]byte, error) {
-	b := make([]byte, n)
-	_, err := rand.Read(b)
-	if err != nil {
-		return nil, err
-	}
-
-	return b, nil
+	return user, nil
 }
 
 // PUT puts user into postgres
-func (us *UserStore) PUT(email string, password string, firstname string, lastname string) (bool, error) {
-	pass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		fmt.Println(err)
-	}
-	user := &models.User{}
-	user.Password = string(pass)
-	user.Email = email
-	user.FirstName = firstname
-	user.LastName = lastname
-	user.UUID = uuid.UUID()
+func (us *UserStore) PUT(user *models.User) (bool, error) {
 	if !us.client.NewRecord(user) {
 		return false, nil
 	}
@@ -192,33 +116,12 @@ func (us *UserStore) DEL(key string, password string) (bool, error) {
 	return true, nil
 }
 
-//REFRESH generates a new refresh token for the authenticated client
-func (us *UserStore) REFRESH(uuid string) (map[string]interface{}, string, time.Time) {
+//GETFROMUUID gets user from uuid
+func (us *UserStore) GETFROMUUID(uuid string) *models.User {
 	user := &models.User{}
 	if err := us.client.Where("UUID = ?", uuid).First(user).Error; err != nil {
-		var resp = map[string]interface{}{"status": false, "message": "UUID not found"}
-		return resp, "", time.Time{}
+		return nil
 	}
 
-	expiresAt := time.Now().Add(time.Minute * 15)
-
-	tk := &models.Token{
-		UUID:  user.UUID,
-		Email: user.Email,
-		StandardClaims: &jwt.StandardClaims{
-			ExpiresAt: expiresAt.Unix(),
-		},
-	}
-	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), tk)
-
-	tokenString, error := token.SignedString([]byte("secret"))
-	if error != nil {
-		fmt.Println(error)
-	}
-
-	var resp = map[string]interface{}{"status": false, "message": "logged in"}
-	resp["token"] = tokenString
-	resp["user"] = user
-
-	return resp, tokenString, expiresAt
+	return user
 }

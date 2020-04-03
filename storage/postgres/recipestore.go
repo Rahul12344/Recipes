@@ -38,7 +38,7 @@ func (rs *RecipeStore) INGREDIENTS(ingredients []string) *models.Recipe {
 //IMAGE create recipe model
 func (rs *RecipeStore) IMAGE(filename string) *models.Recipe {
 	parsing := parsing.NewParser()
-	ingredients := parsing.Detect(filename)
+	ingredients := parsing.Deconstruct(filename)
 
 	return &models.Recipe{
 		Ingredients: ingredients,

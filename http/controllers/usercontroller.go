@@ -2,19 +2,22 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/Rahul12344/Recipes/models"
 	"github.com/Rahul12344/Recipes/util/curruser"
+	"github.com/Rahul12344/Recipes/util/uuid"
 	"github.com/gorilla/mux"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // UserService contains authorization functionality
 type UserService interface {
 	GET(username string, password string) (map[string]interface{}, string, string, time.Time, time.Time)
 	SET(email string, uuid string, userModded *models.User) (map[string]interface{}, error)
-	PUT(email string, password string, firstName string, lastName string) (bool, error)
+	PUT(user *models.User) (bool, error)
 	DEL(username string, password string) (bool, error)
 	REFRESH(uuid string) (map[string]interface{}, string, time.Time)
 	ADD(uuid string, recipe *models.Recipe)
@@ -63,7 +66,14 @@ func (uc *UserController) Signup(w http.ResponseWriter, r *http.Request) {
 	decoder.Decode(&userInfo)
 	var resp = map[string]interface{}{"status": false, "user": userInfo}
 
-	status, _ := uc.User.PUT(userInfo.Username, userInfo.Password, userInfo.FirstName, userInfo.LastName)
+	pass, err := bcrypt.GenerateFromPassword([]byte(userInfo.Password), bcrypt.DefaultCost)
+	if err != nil {
+		fmt.Println(err)
+	}
+	userInfo.Password = string(pass)
+	userInfo.UUID = uuid.UUID()
+
+	status, _ := uc.User.PUT(&userInfo)
 	if status != true {
 		http.Error(w, "Error signing up", 500)
 		return

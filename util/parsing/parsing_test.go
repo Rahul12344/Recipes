@@ -1,1 +1,3 @@
 package parsing
+
+/* UNIT TESTS FOR PARSING TEXT FROM IMAGE */

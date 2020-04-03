@@ -25,5 +25,5 @@ func (ic *ImageController) Setup(r *mux.Router) {
 //ParseImage parses image for text
 func (ic *ImageController) ParseImage(w http.ResponseWriter, r *http.Request) {
 	imageParser := parsing.NewParser()
-	imageParser.Detect(r.URL.Query().Get("filename"))
+	imageParser.Deconstruct(r.URL.Query().Get("filename"))
 }

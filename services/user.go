@@ -1,18 +1,23 @@
 package services
 
 import (
+	"crypto/rand"
+	"encoding/base64"
+	"fmt"
 	"time"
 
 	"github.com/Rahul12344/Recipes/models"
+	"github.com/Rahul12344/Recipes/util/errors"
+	"github.com/dgrijalva/jwt-go"
 )
 
 //UserStore user store
 type UserStore interface {
-	GET(username string, password string) (map[string]interface{}, string, string, time.Time, time.Time)
+	GET(username string, password string) (*models.User, *errors.Errors)
 	SET(email string, uuid string, userModded *models.User) (map[string]interface{}, error)
-	PUT(email string, password string, firstName string, lastName string) (bool, error)
+	PUT(user *models.User) (bool, error)
 	DEL(username string, password string) (bool, error)
-	REFRESH(uuid string) (map[string]interface{}, string, time.Time)
+	GETFROMUUID(uuid string) *models.User
 }
 
 //UserRecipeStore user recipe store
@@ -37,7 +42,74 @@ func NewUserService(userStore UserStore, userRecipeStore UserRecipeStore) *UserS
 
 //GET login
 func (as *UserService) GET(username string, password string) (map[string]interface{}, string, string, time.Time, time.Time) {
-	return as.userStore.GET(username, password)
+	user, err := as.userStore.GET(username, password)
+	if err != nil {
+
+	}
+	if user == nil {
+		var resp = map[string]interface{}{"status": false, "message": "Invalid login credentials"}
+		return resp, "", "", time.Time{}, time.Time{}
+	}
+
+	expiresAt := time.Now().Add(time.Minute * 15)
+
+	tk := &models.Token{
+		UUID:  user.UUID,
+		Email: user.Email,
+		StandardClaims: &jwt.StandardClaims{
+			ExpiresAt: expiresAt.Unix(),
+		},
+	}
+	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), tk)
+
+	tokenString, error := token.SignedString([]byte("secret"))
+	if error != nil {
+		fmt.Println(error)
+	}
+
+	refreshString, stringErr := generateRandomString(32)
+	if stringErr != nil {
+
+	}
+
+	refreshExpiresAt := time.Now().Add(time.Hour * 144)
+
+	refreshTk := &models.RefreshToken{
+		UUID: user.UUID,
+		ID:   refreshString,
+		StandardClaims: &jwt.StandardClaims{
+			ExpiresAt: refreshExpiresAt.Unix(),
+		},
+	}
+
+	refreshToken := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), refreshTk)
+
+	refreshTokenString, error := refreshToken.SignedString([]byte("secret"))
+	if error != nil {
+		fmt.Println(error)
+	}
+
+	var resp = map[string]interface{}{"status": false, "message": "logged in"}
+	resp["token"] = tokenString
+	resp["refresh"] = refreshTokenString
+	resp["user"] = user
+
+	return resp, tokenString, refreshTokenString, expiresAt, refreshExpiresAt
+}
+
+func generateRandomString(s int) (string, error) {
+	b, err := generateRandomBytes(s)
+	return base64.URLEncoding.EncodeToString(b), err
+}
+
+func generateRandomBytes(n int) ([]byte, error) {
+	b := make([]byte, n)
+	_, err := rand.Read(b)
+	if err != nil {
+		return nil, err
+	}
+
+	return b, nil
 }
 
 //SET sets categories
@@ -46,8 +118,8 @@ func (as *UserService) SET(email string, uuid string, userModded *models.User) (
 }
 
 //PUT signs user in
-func (as *UserService) PUT(email string, password string, firstName string, lastName string) (bool, error) {
-	return as.userStore.PUT(email, password, firstName, lastName)
+func (as *UserService) PUT(user *models.User) (bool, error) {
+	return as.userStore.PUT(user)
 }
 
 //DEL delete user
@@ -57,7 +129,33 @@ func (as *UserService) DEL(username string, password string) (bool, error) {
 
 //REFRESH refresh token
 func (as *UserService) REFRESH(uuid string) (map[string]interface{}, string, time.Time) {
-	return as.userStore.REFRESH(uuid)
+	user := as.userStore.GETFROMUUID(uuid)
+	if user == nil {
+		var resp = map[string]interface{}{"status": false, "message": "UUID not found"}
+		return resp, "", time.Time{}
+	}
+
+	expiresAt := time.Now().Add(time.Minute * 15)
+
+	tk := &models.Token{
+		UUID:  user.UUID,
+		Email: user.Email,
+		StandardClaims: &jwt.StandardClaims{
+			ExpiresAt: expiresAt.Unix(),
+		},
+	}
+	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), tk)
+
+	tokenString, error := token.SignedString([]byte("secret"))
+	if error != nil {
+		fmt.Println(error)
+	}
+
+	var resp = map[string]interface{}{"status": false, "message": "logged in"}
+	resp["token"] = tokenString
+	resp["user"] = user
+
+	return resp, tokenString, expiresAt
 }
 
 //ADD add user recipe

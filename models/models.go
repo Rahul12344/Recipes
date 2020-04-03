@@ -7,7 +7,7 @@ import (
 
 // TODO - implement for privacy-forward implementation of this
 
-// Token tokens
+// Token token model
 type Token struct {
 	jwt.Claims
 	UUID           string
@@ -15,7 +15,7 @@ type Token struct {
 	StandardClaims *jwt.StandardClaims
 }
 
-// RefreshToken refresh tokens
+// RefreshToken refresh token model
 type RefreshToken struct {
 	jwt.Claims
 	UUID           string
@@ -23,7 +23,7 @@ type RefreshToken struct {
 	StandardClaims *jwt.StandardClaims
 }
 
-// User user struct
+// User user model
 type User struct {
 	gorm.Model
 	FirstName   string  `json:"fname"`
@@ -42,14 +42,14 @@ type User struct {
 	Recipes     string  `json:"recipes"`
 }
 
-//RecipePointer holds relationship between recipes and users
+//RecipePointer recipepointer model
 type RecipePointer struct {
 	Adder  string `json:"adder"`
 	Recipe string `json:"recipe"`
 	Hits   int    `json:"hits"`
 }
 
-// Friends structure of friend
+// Friends friend model
 type Friends struct {
 	gorm.Model
 	UUID         string `json:"uuid"`
@@ -60,7 +60,7 @@ type Friends struct {
 	TimeAccepted int64  `json:"timeaccepted"`
 }
 
-// FriendRequest friend request
+// FriendRequest friendrequest model
 type FriendRequest struct {
 	gorm.Model
 	Sender    string `json:"uuid"`
@@ -69,7 +69,7 @@ type FriendRequest struct {
 	Timestamp int64  `json:"timestamp"`
 }
 
-// Recipe recipe structure
+// Recipe recipe model
 type Recipe struct {
 	Name         string   `json:"name"`
 	Description  string   `json:"description"`

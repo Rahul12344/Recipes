@@ -1,7 +1,11 @@
 package expand
 
 /* Constructs matchers that use regex and word assocs to expand and connect words */
-/* Ping API to check if food word */
+/* Ping API (maybe localized, but potentially Python) to check if food word */
+
+// An association is the end product - constructed of words from an ingredient that are food and logically go together
+// For example, peanut butter is an association
+//Essentially a linked list in which assocations are pointers to the next word
 
 // Associations constructs associations, final form of functionality
 type Associations struct {
@@ -17,17 +21,27 @@ func NewAssociations(allWords string, root *Matcher) *Associations {
 	}
 }
 
+// The way this will work: matchers have next pointers to point to the word they are most greatly associated with
+// For example, beef -> butter
+// Potential issues: words like peanut -> butter because of the prevalence of peanut butter
+
 // Matcher constructs matching object
 type Matcher struct {
-	Word      *RgxMpr
-	WordSize  int
+	Word     *RgxMpr
+	WordSize int
+
+	Checker   string
 	Check     *RgxMpr
 	CheckSize int
-	Next      *Matcher
+
+	Next *Matcher
+	Prev *Matcher
+
+	Matched string
 }
 
 //NewMatcher inits matcher obj
-func NewMatcher(word string, checker string, next *Matcher) *Matcher {
+func NewMatcher(word string, checker string, next *Matcher, prev *Matcher) *Matcher {
 	newWord := NewRgxMpr(word)
 	newWord.InitMap(word)
 	newChecker := NewRgxMpr(checker)
@@ -36,22 +50,23 @@ func NewMatcher(word string, checker string, next *Matcher) *Matcher {
 		Word:      newWord,
 		WordSize:  len(newWord.Rgxmpr),
 		Check:     newChecker,
+		Checker:   checker,
 		CheckSize: len(newChecker.Rgxmpr),
 		Next:      next,
+		Prev:      prev,
 	}
 }
 
 // Matcher checks if words regex match to food words; if not, discard word
-func (m *Matcher) Matcher() string {
+func (m *Matcher) Matcher() {
 	if m.WordSize == 0 || m.CheckSize == 0 {
-		return ""
+		return
 	}
 	var rgxChk [][]bool
 	rgxChk[m.CheckSize+1][m.WordSize+1] = true
 	if m.isMatch(rgxChk) {
-		return m.Check.Rgxmpr
+		m.Matched = m.Checker
 	}
-	return ""
 }
 
 func (m *Matcher) isMatch(rgxChk [][]bool) bool {
@@ -68,6 +83,10 @@ func (m *Matcher) isMatch(rgxChk [][]bool) bool {
 	return rgxChk[0][0]
 }
 
+func (m *Matcher) isAssociated(m2 *Matcher) bool {
+	return associationAPI(m.Word.Rgxmpr, m2.Word.Rgxmpr)
+}
+
 func (m *Matcher) charMatch(c1 byte, c2 byte) bool {
 	if c1 == c2 {
 		return true
@@ -78,12 +97,12 @@ func (m *Matcher) charMatch(c1 byte, c2 byte) bool {
 	return false
 }
 
-//RgxMpr nodes to represent letters
+//RgxMpr represents matching
 type RgxMpr struct {
 	Rgxmpr string
 }
 
-// NewRgxMpr Sets root to starting letter of word
+// NewRgxMpr Constructs RgxMpr obj
 func NewRgxMpr(rgxmpr string) *RgxMpr {
 	return &RgxMpr{
 		Rgxmpr: rgxmpr,
@@ -104,4 +123,9 @@ func (root *RgxMpr) InitMap(word string) {
 		curr[j] = '*'
 		j++
 	}
+	root.Rgxmpr = string(curr)
+}
+
+func associationAPI(word1 string, word2 string) bool {
+	return false
 }

@@ -49,3 +49,10 @@ func (parser *Parser) Detect(filename string) []string {
 	}
 	return descriptions
 }
+
+//Deconstruct deconstructs foods from image
+func (parser *Parser) Deconstruct(filename string) []string {
+	var foodItems []string
+
+	return foodItems
+}
