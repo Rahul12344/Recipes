@@ -10,9 +10,9 @@ import (
 
 // RecipeService recipe service
 type RecipeService interface {
-	FIND(image bool, matches *models.Recipe) []*models.Recipe
-	INGREDIENTS(ingredients []string) *models.Recipe
-	IMAGE(filename string) *models.Recipe
+	FIND(ingredients []string) [][]*models.Recipe
+	INGREDIENTS(ingredients []string) []*models.Ingredients
+	IMAGE(filename string) []*models.Ingredients
 }
 
 // RecipeController handles recipe-related events
@@ -35,8 +35,8 @@ func (rc *RecipeController) Setup(r *mux.Router) {
 // FindRecipe finds recipe
 func (rc *RecipeController) FindRecipe(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Query().Get("image") != "" {
-		rc.recipeService.FIND(true, rc.recipeService.IMAGE(r.URL.Query().Get("image")))
+		rc.recipeService.IMAGE(r.URL.Query().Get("image"))
 	}
 
-	rc.recipeService.FIND(false, rc.recipeService.INGREDIENTS(strings.Split(r.URL.Query().Get("ingredients"), ",")))
+	rc.recipeService.INGREDIENTS(strings.Split(r.URL.Query().Get("ingredients"), ","))
 }

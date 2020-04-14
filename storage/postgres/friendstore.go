@@ -14,6 +14,9 @@ type FriendStore struct {
 
 // NewFriendStore Postgresql client
 func NewFriendStore(client *gorm.DB) *FriendStore {
+	const SchemaQuery = `CREATE SCHEMA IF NOT EXISTS users`
+	client.Exec(SchemaQuery)
+	client.Exec(`set search_path='users'`)
 	return &FriendStore{
 		client: client,
 	}
@@ -21,6 +24,9 @@ func NewFriendStore(client *gorm.DB) *FriendStore {
 
 func (fs *FriendStore) create() {
 	/* TODO: Maybe change migration model to maybe define DB relationships */
+	/*gorm.DefaultTableNameHandler = func(db *gorm.DB, tableName string) string {
+		return "users." + tableName
+	}*/
 	fs.client.AutoMigrate(&models.Friends{})
 }
 

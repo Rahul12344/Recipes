@@ -22,24 +22,24 @@ func ExecuteServer(config Config) {
 	var recipeDB *gorm.DB
 	_, ok := os.LookupEnv("DATABASE_URL")
 	if ok {
-		userDB = postgres.Connect(true, "DATABASE_URL", config.Storage.UserHost,
-			config.Storage.UserUsername,
+		userDB = postgres.Connect(true, "DATABASE_URL", config.Storage.Host,
+			config.Storage.Name,
 			config.Storage.Username,
-			config.Storage.UserPassword)
+			config.Storage.Password)
 	}
 	if !ok {
-		userDB = postgres.Connect(false, "", config.Storage.UserHost,
-			config.Storage.UserUsername,
+		userDB = postgres.Connect(false, "", config.Storage.Host,
+			config.Storage.Name,
 			config.Storage.Username,
-			config.Storage.UserPassword)
-		friendDB = postgres.Connect(false, "", config.Storage.FriendHost,
-			config.Storage.FriendUsername,
-			config.Storage.Friendname,
-			config.Storage.FriendPassword)
-		recipeDB = postgres.Connect(false, "", config.Storage.RecipeHost,
-			config.Storage.RecipeUsername,
-			config.Storage.RecipeName,
-			config.Storage.RecipePassword)
+			config.Storage.Password)
+		friendDB = postgres.Connect(false, "", config.Storage.Host,
+			config.Storage.Name,
+			config.Storage.Username,
+			config.Storage.Password)
+		recipeDB = postgres.Connect(false, "", config.Storage.Host,
+			config.Storage.Name,
+			config.Storage.Username,
+			config.Storage.Password)
 
 	}
 

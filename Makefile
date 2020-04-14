@@ -1,8 +1,17 @@
 EXEC=Recipes
 
+
 .PHONY: test
 
-run: bin/bconnect test
+db:
+	psql \
+	   --host=$(HOST) \
+	   --port=$(PORT) \
+	   --username=$(USERNAME) \
+	   --password \
+	   --dbname=$(DATABASE) \
+
+run: db bin/bconnect test
 	./bin/$(EXEC)
 
 bin/bconnect:

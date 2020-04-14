@@ -14,21 +14,13 @@ type Config struct {
 	} `yaml:"SERVER"`
 
 	Storage struct {
-		Port           string `yaml:"PORT"`
-		UserHost       string `yaml:"USERHOST"`
-		FriendHost     string `yaml:"FRIENDHOST"`
-		RecipeHost     string `yaml:"RECIPEHOST"`
-		Friendname     string `yaml:"FRIENDNAME"`
-		Username       string `yaml:"USERNAME"`
-		RecipeName     string `yaml:"RECIPENAME"`
-		UserUsername   string `yaml:"USERUSERNAME"`
-		UserPassword   string `yaml:"USERPASSWORD"`
-		FriendUsername string `yaml:"FRIENDUSERNAME"`
-		FriendPassword string `yaml:"FRIENDPASSWORD"`
-		RecipeUsername string `yaml:"RECIPEUSERNAME"`
-		RecipePassword string `yaml:"RECIPEPASSWORD"`
-		HerokuUser     string `yaml:"HEROKUUSER"`
-		HerokuFriend   string `yaml:"HEROKUFRIEND"`
+		Port         string `yaml:"PORT"`
+		Host         string `yaml:"HOST"`
+		Username     string `yaml:"USERNAME"`
+		Name         string `yaml:"NAME"`
+		Password     string `yaml:"PASSWORD"`
+		HerokuUser   string `yaml:"HEROKUUSER"`
+		HerokuFriend string `yaml:"HEROKUFRIEND"`
 	} `yaml:"STORAGE"`
 }
 

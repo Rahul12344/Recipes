@@ -14,6 +14,9 @@ type UserStore struct {
 
 // NewUserStore Postgresql client
 func NewUserStore(client *gorm.DB) *UserStore {
+	const SchemaQuery = `CREATE SCHEMA IF NOT EXISTS users`
+	client.Exec(SchemaQuery)
+	client.Exec(`set search_path='users'`)
 	return &UserStore{
 		client: client,
 	}
@@ -21,6 +24,9 @@ func NewUserStore(client *gorm.DB) *UserStore {
 
 func (us *UserStore) create() {
 	/* TODO: Maybe change migration model to maybe define DB relationships */
+	/*gorm.DefaultTableNameHandler = func(db *gorm.DB, tableName string) string {
+		return "users." + tableName
+	}*/
 	us.client.AutoMigrate(&models.User{})
 }
 
@@ -65,9 +71,6 @@ func (us *UserStore) SET(email string, uuid string, userModded *models.User) (ma
 
 	fname := userModded.FirstName
 	lname := userModded.LastName
-	interests := userModded.Interests
-	bio := userModded.Bio
-	clubs := userModded.Clubs
 	lat := userModded.Lat
 	lon := userModded.Lon
 
@@ -76,15 +79,6 @@ func (us *UserStore) SET(email string, uuid string, userModded *models.User) (ma
 	}
 	if userModded.LastName == "" {
 		lname = user.LastName
-	}
-	if userModded.Interests == "" {
-		interests = user.Interests
-	}
-	if userModded.Bio == "" {
-		bio = user.Bio
-	}
-	if userModded.Clubs == "" {
-		bio = user.Clubs
 	}
 	if userModded.Lat == 0 {
 		lat = user.Lat
@@ -95,9 +89,6 @@ func (us *UserStore) SET(email string, uuid string, userModded *models.User) (ma
 
 	user.FirstName = fname
 	user.LastName = lname
-	user.Interests = interests
-	user.Bio = bio
-	user.Clubs = clubs
 	user.Lat = lat
 	user.Lon = lon
 	us.client.Save(&user)
