@@ -5,19 +5,15 @@ import "github.com/jinzhu/gorm"
 // Friends friend model
 type Friends struct {
 	gorm.Model
-	UUID         string `json:"uuid"`
-	FUUID        string `json:"fuuid"`
-	FReqMess     string `json:"msg"`
-	TimeStamp    int64  `json:"timestamp"`
-	Status       int    `json:"status"`
-	TimeAccepted int64  `json:"timeaccepted"`
+	UserID               string `json:"user_id"`
+	FriendID             string `json:"friend_id"`
+	FriendRequestMessage string `json:"friend_request_message"`
+	TimeStamp            int64  `json:"timestamp"`
+	Status               int    `json:"status"`
+	TimeAccepted         int64  `json:"time_accepted"`
 }
 
-// FriendRequest friendrequest model
-type FriendRequest struct {
-	gorm.Model
-	Sender    string `json:"uuid"`
-	Receiver  string `json:"fuuid"`
-	Message   string `json:"message"`
-	Timestamp int64  `json:"timestamp"`
+//TableName name of table
+func (Friends) TableName() string {
+	return "friends"
 }

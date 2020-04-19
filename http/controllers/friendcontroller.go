@@ -39,7 +39,7 @@ func (fs *FriendController) Follow(w http.ResponseWriter, r *http.Request) {
 	friendRequest := models.Friends{}
 	decoder := json.NewDecoder(r.Body)
 	decoder.Decode(&friendRequest)
-	fs.Friends.FOLLOW(friendRequest.UUID, friendRequest.FUUID, friendRequest.FReqMess)
+	fs.Friends.FOLLOW(friendRequest.UserID, friendRequest.FriendID, friendRequest.FriendRequestMessage)
 }
 
 //AcceptFollowRequest follows
@@ -47,7 +47,7 @@ func (fs *FriendController) AcceptFollowRequest(w http.ResponseWriter, r *http.R
 	friendRequest := models.Friends{}
 	decoder := json.NewDecoder(r.Body)
 	decoder.Decode(&friendRequest)
-	fs.Friends.ACCEPT(friendRequest.UUID, friendRequest.FUUID)
+	fs.Friends.ACCEPT(friendRequest.UserID, friendRequest.FriendID)
 }
 
 //Unfollow unfollows
@@ -55,5 +55,5 @@ func (fs *FriendController) Unfollow(w http.ResponseWriter, r *http.Request) {
 	friendRequest := models.Friends{}
 	decoder := json.NewDecoder(r.Body)
 	decoder.Decode(&friendRequest)
-	fs.Friends.UNFOLLOW(friendRequest.UUID, friendRequest.FUUID, friendRequest.FReqMess)
+	fs.Friends.UNFOLLOW(friendRequest.UserID, friendRequest.FriendID, friendRequest.FriendRequestMessage)
 }

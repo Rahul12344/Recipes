@@ -16,8 +16,8 @@ import (
 // UserService contains authorization functionality
 type UserService interface {
 	GET(username string, password string) (map[string]interface{}, string, string, time.Time, time.Time)
-	SET(email string, uuid string, userModded *models.User) (map[string]interface{}, error)
-	PUT(user *models.User) (bool, error)
+	SET(email string, uuid string, userModded *models.RecipeUser) (map[string]interface{}, error)
+	PUT(user *models.RecipeUser) (bool, error)
 	DEL(username string, password string) (bool, error)
 	REFRESH(uuid string) (map[string]interface{}, string, time.Time)
 	ADD(uuid string, recipe *models.Recipe)
@@ -50,7 +50,7 @@ func (uc *UserController) VerifiedSetup(r *mux.Router) {
 
 // Login login users and provides authentication token for user
 func (uc *UserController) Login(w http.ResponseWriter, r *http.Request) {
-	var loginInfo models.User
+	var loginInfo models.RecipeUser
 	decoder := json.NewDecoder(r.Body)
 	decoder.Decode(&loginInfo)
 	resp, token, _, _, _ := uc.User.GET(loginInfo.Username, loginInfo.Password)
@@ -61,7 +61,7 @@ func (uc *UserController) Login(w http.ResponseWriter, r *http.Request) {
 
 // Signup signs up users and provides auth token
 func (uc *UserController) Signup(w http.ResponseWriter, r *http.Request) {
-	var userInfo models.User
+	var userInfo models.RecipeUser
 	decoder := json.NewDecoder(r.Body)
 	decoder.Decode(&userInfo)
 	var resp = map[string]interface{}{"status": false, "user": userInfo}
@@ -71,7 +71,7 @@ func (uc *UserController) Signup(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 	userInfo.Password = string(pass)
-	userInfo.UUID = uuid.UUID()
+	userInfo.UserID = uuid.UUID()
 
 	status, _ := uc.User.PUT(&userInfo)
 	if status != true {

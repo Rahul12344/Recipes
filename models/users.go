@@ -19,26 +19,36 @@ func (cc CountryCode) Valid() {
 	return
 }
 
-// User user model
-type User struct {
+// RecipeUser user model
+type RecipeUser struct {
 	gorm.Model
-	FirstName   string      `json:"fname" gorm:"not null"`
-	LastName    string      `json:"lname" gorm:"not null"`
+	UserID      string      `json:"user_id" gorm:"unique;not null;primary_key"`
+	FirstName   string      `json:"first_name" gorm:"not null"`
+	LastName    string      `json:"last_name" gorm:"not null"`
 	Email       string      `json:"email" gorm:"not null"`
 	Username    string      `json:"username" gorm:"not null"`
 	Password    string      `json:"password" gorm:"not null"`
 	PhoneNumber string      `json:"phonenumber"`
 	ProfilePic  string      `json:"profilepic"`
-	UUID        string      `json:"uuid" gorm:"not null;primary_key"`
 	Country     CountryCode `json:"country"`
 	Lat         float64     `json:"lat"`
 	Lon         float64     `json:"lon"`
 }
 
-//RecipePointer recipepointer model
-type RecipePointer struct {
+//TableName name of table
+func (RecipeUser) TableName() string {
+	return "recipe_user"
+}
+
+//UserRecipes UserRecipes model
+type UserRecipes struct {
 	gorm.Model
-	Adder  string `json:"adder" gorm:"not null;primary_key"`
-	Recipe string `json:"recipe" gorm:"not null;primary_key"`
-	Hits   int    `json:"hits"`
+	Adder   string `json:"adder" gorm:"not null;primary_key"`
+	Recipes string `json:"recipes"`
+	Hits    int    `json:"hits"`
+}
+
+//TableName name of table
+func (UserRecipes) TableName() string {
+	return "user_recipes"
 }

@@ -17,38 +17,28 @@ import (
 
 //ExecuteServer start server
 func ExecuteServer(config Config) {
-	var userDB *gorm.DB
-	var friendDB *gorm.DB
-	var recipeDB *gorm.DB
+	var postgresDB *gorm.DB
 	_, ok := os.LookupEnv("DATABASE_URL")
 	if ok {
-		userDB = postgres.Connect(true, "DATABASE_URL", config.Storage.Host,
+		postgresDB = postgres.Connect(true, "DATABASE_URL", config.Storage.Host,
 			config.Storage.Name,
 			config.Storage.Username,
 			config.Storage.Password)
 	}
 	if !ok {
-		userDB = postgres.Connect(false, "", config.Storage.Host,
+		postgresDB = postgres.Connect(false, "", config.Storage.Host,
 			config.Storage.Name,
 			config.Storage.Username,
 			config.Storage.Password)
-		friendDB = postgres.Connect(false, "", config.Storage.Host,
-			config.Storage.Name,
-			config.Storage.Username,
-			config.Storage.Password)
-		recipeDB = postgres.Connect(false, "", config.Storage.Host,
-			config.Storage.Name,
-			config.Storage.Username,
-			config.Storage.Password)
-
 	}
 
-	userStore := postgres.NewUserStore(userDB)
-	userRecipeStore := postgres.NewUserRecipeStore(userDB)
-	friendStore := postgres.NewFriendStore(friendDB)
-	recipeStore := postgres.NewRecipeStore(recipeDB)
+	userStore := postgres.NewUserStore(postgresDB)
+	recipeStore := postgres.NewRecipeStore(postgresDB)
+	userRecipeStore := postgres.NewUserRecipeStore(postgresDB)
+	friendStore := postgres.NewFriendStore(postgresDB)
+	deliveryStore := postgres.NewDeliveryStore(postgresDB)
 
-	postgres.CreatePostgresTables(userStore, userRecipeStore, friendStore, recipeStore)
+	postgres.CreatePostgresTables(userStore, userRecipeStore, friendStore, recipeStore, deliveryStore)
 
 	userService := services.NewUserService(userStore, userRecipeStore)
 	friendService := services.NewFriendService(friendStore)

@@ -16,7 +16,7 @@ type UserStore struct {
 func NewUserStore(client *gorm.DB) *UserStore {
 	const SchemaQuery = `CREATE SCHEMA IF NOT EXISTS users`
 	client.Exec(SchemaQuery)
-	client.Exec(`set search_path='users'`)
+	//client.Exec(`set search_path='users'`)
 	return &UserStore{
 		client: client,
 	}
@@ -24,20 +24,17 @@ func NewUserStore(client *gorm.DB) *UserStore {
 
 func (us *UserStore) create() {
 	/* TODO: Maybe change migration model to maybe define DB relationships */
-	/*gorm.DefaultTableNameHandler = func(db *gorm.DB, tableName string) string {
-		return "users." + tableName
-	}*/
-	us.client.AutoMigrate(&models.User{})
+	us.client.AutoMigrate(&models.RecipeUser{})
 }
 
 // GET gets user for login
-func (us *UserStore) GET(key string, password string) (*models.User, *errors.Errors) {
+func (us *UserStore) GET(key string, password string) (*models.RecipeUser, *errors.Errors) {
 	user, err := us.findUser(key, password)
 	return user, err
 }
 
-func (us *UserStore) findUser(email, password string) (*models.User, *errors.Errors) {
-	user := &models.User{}
+func (us *UserStore) findUser(email, password string) (*models.RecipeUser, *errors.Errors) {
+	user := &models.RecipeUser{}
 
 	if err := us.client.Where("Email = ?", email).First(user).Error; err != nil {
 		return nil, nil
@@ -52,7 +49,7 @@ func (us *UserStore) findUser(email, password string) (*models.User, *errors.Err
 }
 
 // PUT puts user into postgres
-func (us *UserStore) PUT(user *models.User) (bool, error) {
+func (us *UserStore) PUT(user *models.RecipeUser) (bool, error) {
 	if !us.client.NewRecord(user) {
 		return false, nil
 	}
@@ -64,8 +61,8 @@ func (us *UserStore) PUT(user *models.User) (bool, error) {
 }
 
 // SET sets updated fields
-func (us *UserStore) SET(email string, uuid string, userModded *models.User) (map[string]interface{}, error) {
-	var user models.User
+func (us *UserStore) SET(email string, uuid string, userModded *models.RecipeUser) (map[string]interface{}, error) {
+	var user models.RecipeUser
 	if err := us.client.Where("EMAIL = ? AND UUID = ?", email, uuid).Find(&user); err != nil {
 	}
 
@@ -108,8 +105,8 @@ func (us *UserStore) DEL(key string, password string) (bool, error) {
 }
 
 //GETFROMUUID gets user from uuid
-func (us *UserStore) GETFROMUUID(uuid string) *models.User {
-	user := &models.User{}
+func (us *UserStore) GETFROMUUID(uuid string) *models.RecipeUser {
+	user := &models.RecipeUser{}
 	if err := us.client.Where("UUID = ?", uuid).First(user).Error; err != nil {
 		return nil
 	}

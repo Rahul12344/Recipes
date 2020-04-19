@@ -13,11 +13,11 @@ import (
 
 //UserStore user store
 type UserStore interface {
-	GET(username string, password string) (*models.User, *errors.Errors)
-	SET(email string, uuid string, userModded *models.User) (map[string]interface{}, error)
-	PUT(user *models.User) (bool, error)
+	GET(username string, password string) (*models.RecipeUser, *errors.Errors)
+	SET(email string, uuid string, userModded *models.RecipeUser) (map[string]interface{}, error)
+	PUT(user *models.RecipeUser) (bool, error)
 	DEL(username string, password string) (bool, error)
-	GETFROMUUID(uuid string) *models.User
+	GETFROMUUID(uuid string) *models.RecipeUser
 }
 
 //UserRecipeStore user recipe store
@@ -54,7 +54,7 @@ func (as *UserService) GET(username string, password string) (map[string]interfa
 	expiresAt := time.Now().Add(time.Minute * 15)
 
 	tk := &models.Token{
-		UUID:  user.UUID,
+		UUID:  user.UserID,
 		Email: user.Email,
 		StandardClaims: &jwt.StandardClaims{
 			ExpiresAt: expiresAt.Unix(),
@@ -75,7 +75,7 @@ func (as *UserService) GET(username string, password string) (map[string]interfa
 	refreshExpiresAt := time.Now().Add(time.Hour * 144)
 
 	refreshTk := &models.RefreshToken{
-		UUID: user.UUID,
+		UUID: user.UserID,
 		ID:   refreshString,
 		StandardClaims: &jwt.StandardClaims{
 			ExpiresAt: refreshExpiresAt.Unix(),
@@ -113,12 +113,12 @@ func generateRandomBytes(n int) ([]byte, error) {
 }
 
 //SET sets categories
-func (as *UserService) SET(email string, uuid string, userModded *models.User) (map[string]interface{}, error) {
+func (as *UserService) SET(email string, uuid string, userModded *models.RecipeUser) (map[string]interface{}, error) {
 	return as.userStore.SET(email, uuid, userModded)
 }
 
 //PUT signs user in
-func (as *UserService) PUT(user *models.User) (bool, error) {
+func (as *UserService) PUT(user *models.RecipeUser) (bool, error) {
 	return as.userStore.PUT(user)
 }
 
@@ -138,7 +138,7 @@ func (as *UserService) REFRESH(uuid string) (map[string]interface{}, string, tim
 	expiresAt := time.Now().Add(time.Minute * 15)
 
 	tk := &models.Token{
-		UUID:  user.UUID,
+		UUID:  user.UserID,
 		Email: user.Email,
 		StandardClaims: &jwt.StandardClaims{
 			ExpiresAt: expiresAt.Unix(),

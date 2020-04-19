@@ -12,9 +12,6 @@ type DeliveryStore struct {
 
 // NewDeliveryStore Postgresql client
 func NewDeliveryStore(client *gorm.DB) *DeliveryStore {
-	const SchemaQuery = `CREATE SCHEMA IF NOT EXISTS deliveries`
-	client.Exec(SchemaQuery)
-	client.Exec(`set search_path='deliveries'`)
 	return &DeliveryStore{
 		client: client,
 	}
@@ -22,9 +19,6 @@ func NewDeliveryStore(client *gorm.DB) *DeliveryStore {
 
 func (ds *DeliveryStore) create() {
 	/* TODO: Maybe change migration model to maybe define DB relationships */
-	gorm.DefaultTableNameHandler = func(db *gorm.DB, tableName string) string {
-		return "deliveries." + tableName
-	}
 	ds.client.AutoMigrate(&models.Delivery{})
 }
 

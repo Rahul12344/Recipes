@@ -14,9 +14,6 @@ type FriendStore struct {
 
 // NewFriendStore Postgresql client
 func NewFriendStore(client *gorm.DB) *FriendStore {
-	const SchemaQuery = `CREATE SCHEMA IF NOT EXISTS users`
-	client.Exec(SchemaQuery)
-	client.Exec(`set search_path='users'`)
 	return &FriendStore{
 		client: client,
 	}
@@ -24,20 +21,20 @@ func NewFriendStore(client *gorm.DB) *FriendStore {
 
 func (fs *FriendStore) create() {
 	/* TODO: Maybe change migration model to maybe define DB relationships */
-	/*gorm.DefaultTableNameHandler = func(db *gorm.DB, tableName string) string {
-		return "users." + tableName
-	}*/
+	/*const SchemaQuery = `CREATE SCHEMA IF NOT EXISTS users`
+	fs.client.Exec(SchemaQuery)
+	fs.client.Exec(`set search_path='users'`)*/
 	fs.client.AutoMigrate(&models.Friends{})
 }
 
 // FOLLOW follows friend
 func (fs *FriendStore) FOLLOW(uuid string, friendUUID string, optionalMsg string) (bool, error) {
 	friendRequest := &models.Friends{
-		UUID:      uuid,
-		FUUID:     friendUUID,
-		FReqMess:  optionalMsg,
-		TimeStamp: time.Now().Unix(),
-		Status:    0,
+		UserID:               uuid,
+		FriendID:             friendUUID,
+		FriendRequestMessage: optionalMsg,
+		TimeStamp:            time.Now().Unix(),
+		Status:               0,
 	}
 	if !fs.client.NewRecord(friendRequest) {
 		return false, nil
@@ -52,11 +49,11 @@ func (fs *FriendStore) FOLLOW(uuid string, friendUUID string, optionalMsg string
 // UNFOLLOW unfollows friend
 func (fs *FriendStore) UNFOLLOW(uuid string, friendUUID string, optionalMsg string) (bool, error) {
 	friendRequest := &models.Friends{
-		UUID:      uuid,
-		FUUID:     friendUUID,
-		FReqMess:  optionalMsg,
-		TimeStamp: time.Now().Unix(),
-		Status:    0,
+		UserID:               uuid,
+		FriendID:             friendUUID,
+		FriendRequestMessage: optionalMsg,
+		TimeStamp:            time.Now().Unix(),
+		Status:               0,
 	}
 	if fs.client.NewRecord(friendRequest) {
 		return false, nil
@@ -71,8 +68,8 @@ func (fs *FriendStore) UNFOLLOW(uuid string, friendUUID string, optionalMsg stri
 // ACCEPT accepts added friends
 func (fs *FriendStore) ACCEPT(currUUID string, friendUUID string) (*models.Friends, error) {
 	friendRequest := &models.Friends{}
-	friendRequest.UUID = currUUID
-	friendRequest.FUUID = friendUUID
+	friendRequest.UserID = currUUID
+	friendRequest.FriendID = friendUUID
 
 	fs.acceptRequest(currUUID, friendUUID)
 
