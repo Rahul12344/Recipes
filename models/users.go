@@ -28,27 +28,40 @@ type RecipeUser struct {
 	Email       string      `json:"email" gorm:"not null"`
 	Username    string      `json:"username" gorm:"not null"`
 	Password    string      `json:"password" gorm:"not null"`
-	PhoneNumber string      `json:"phonenumber"`
-	ProfilePic  string      `json:"profilepic"`
-	Country     CountryCode `json:"country"`
-	Lat         float64     `json:"lat"`
-	Lon         float64     `json:"lon"`
+	PhoneNumber string      `json:"phonenumber" gorm:"not null"`
+	ProfilePic  string      `json:"profilepic" gorm:"not null"`
+	Country     CountryCode `json:"country" gorm:"not null"`
+	Lat         float64     `json:"lat" gorm:"not null"`
+	Lon         float64     `json:"lon" gorm:"not null"`
 }
 
 //TableName name of table
 func (RecipeUser) TableName() string {
-	return "recipe_user"
+	return "recipe_users"
 }
 
 //UserRecipes UserRecipes model
 type UserRecipes struct {
 	gorm.Model
-	Adder   string `json:"adder" gorm:"not null;primary_key"`
-	Recipes string `json:"recipes"`
-	Hits    int    `json:"hits"`
+	Adder    string `json:"adder" gorm:"not null;primary_key"`
+	RecipeID string `json:"recipe_id" gorm:"not null"`
+	Hits     int    `json:"hits" gorm:"not null"`
 }
 
 //TableName name of table
 func (UserRecipes) TableName() string {
 	return "user_recipes"
+}
+
+//Inventory inventory model
+type Inventory struct {
+	gorm.Model
+	UserID       string `json:"inventory_user" gorm:"not null;primary_key"`
+	IngredientID string `json:"inventory_ingredient" gorm:"not null;primary_key" `
+	Quantity     int    `json:"inventory_quantity" gorm:"not null"`
+}
+
+//TableName name of table
+func (Inventory) TableName() string {
+	return "inventory"
 }

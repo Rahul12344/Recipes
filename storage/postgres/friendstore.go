@@ -4,31 +4,18 @@ import (
 	"time"
 
 	"github.com/Rahul12344/Recipes/models"
-	"github.com/jinzhu/gorm"
+	"github.com/Rahul12344/skelego/services/storage/sqlservice"
 )
 
-// FriendStore friend store
-type FriendStore struct {
-	client *gorm.DB
-}
-
 // NewFriendStore Postgresql client
-func NewFriendStore(client *gorm.DB) *FriendStore {
+func NewFriendStore(client sqlservice.ORMWrapper) *FriendStore {
 	return &FriendStore{
 		client: client,
 	}
 }
 
-func (fs *FriendStore) create() {
-	/* TODO: Maybe change migration model to maybe define DB relationships */
-	/*const SchemaQuery = `CREATE SCHEMA IF NOT EXISTS users`
-	fs.client.Exec(SchemaQuery)
-	fs.client.Exec(`set search_path='users'`)*/
-	fs.client.AutoMigrate(&models.Friends{})
-}
-
-// FOLLOW follows friend
-func (fs *FriendStore) FOLLOW(uuid string, friendUUID string, optionalMsg string) (bool, error) {
+// Follow Follows friend
+func (fs *FriendStore) Follow(uuid string, friendUUID string, optionalMsg string) (bool, error) {
 	friendRequest := &models.Friends{
 		UserID:               uuid,
 		FriendID:             friendUUID,
@@ -36,18 +23,18 @@ func (fs *FriendStore) FOLLOW(uuid string, friendUUID string, optionalMsg string
 		TimeStamp:            time.Now().Unix(),
 		Status:               0,
 	}
-	if !fs.client.NewRecord(friendRequest) {
+	if !fs.client.ORM().NewRecord(friendRequest) {
 		return false, nil
 	}
-	fs.client.Create(friendRequest)
-	if fs.client.NewRecord(friendRequest) {
+	fs.client.ORM().Create(friendRequest)
+	if fs.client.ORM().NewRecord(friendRequest) {
 		return false, nil
 	}
 	return true, nil
 }
 
-// UNFOLLOW unfollows friend
-func (fs *FriendStore) UNFOLLOW(uuid string, friendUUID string, optionalMsg string) (bool, error) {
+// Unfollow Unfollows friend
+func (fs *FriendStore) Unfollow(uuid string, friendUUID string, optionalMsg string) (bool, error) {
 	friendRequest := &models.Friends{
 		UserID:               uuid,
 		FriendID:             friendUUID,
@@ -55,18 +42,18 @@ func (fs *FriendStore) UNFOLLOW(uuid string, friendUUID string, optionalMsg stri
 		TimeStamp:            time.Now().Unix(),
 		Status:               0,
 	}
-	if fs.client.NewRecord(friendRequest) {
+	if fs.client.ORM().NewRecord(friendRequest) {
 		return false, nil
 	}
-	fs.client.Delete(friendRequest)
-	if !fs.client.NewRecord(friendRequest) {
+	fs.client.ORM().Delete(friendRequest)
+	if !fs.client.ORM().NewRecord(friendRequest) {
 		return false, nil
 	}
 	return true, nil
 }
 
-// ACCEPT accepts added friends
-func (fs *FriendStore) ACCEPT(currUUID string, friendUUID string) (*models.Friends, error) {
+// Accept Accepts added friends
+func (fs *FriendStore) Accept(currUUID string, friendUUID string) (*models.Friends, error) {
 	friendRequest := &models.Friends{}
 	friendRequest.UserID = currUUID
 	friendRequest.FriendID = friendUUID
@@ -79,9 +66,9 @@ func (fs *FriendStore) ACCEPT(currUUID string, friendUUID string) (*models.Frien
 func (fs *FriendStore) acceptRequest(currUUID string, friendUUID string) {
 	friend := &models.Friends{}
 
-	if err := fs.client.Where("F_UUID = ? AND UUID = ?", currUUID, friendUUID).Find(&friend); err != nil {
+	if err := fs.client.ORM().Where("F_UUID = ? AND UUID = ?", currUUID, friendUUID).Find(&friend); err != nil {
 	}
 	friend.Status = 1
 	friend.TimeAccepted = time.Now().Unix()
-	fs.client.Save(&friend)
+	fs.client.ORM().Save(&friend)
 }

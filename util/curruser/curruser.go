@@ -7,7 +7,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
-// Claims used to determine auth token passed in header
+// Claims Used to determine auth token passed in header.
 type Claims struct {
 	jwt.MapClaims
 	UUID           string
@@ -15,7 +15,7 @@ type Claims struct {
 	StandardClaims *jwt.StandardClaims
 }
 
-//GetCurrUser gets current from access token
+//GetCurrUser Gets current from access token.
 func GetCurrUser(w http.ResponseWriter, r *http.Request) string {
 	header := strings.TrimSpace(r.Header.Get("x-access-token"))
 

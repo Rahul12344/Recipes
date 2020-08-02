@@ -1,31 +1,52 @@
 package services
 
 import (
+	"context"
+
 	"github.com/Rahul12344/Recipes/models"
 	"github.com/Rahul12344/Recipes/util/expand"
 	"github.com/Rahul12344/Recipes/util/parsing"
+	"github.com/Rahul12344/Recipes/util/uuid"
 )
 
-//RecipeStore recipe store
+//RecipeStore RecipeStore.
 type RecipeStore interface {
-	FIND(matches []*models.Ingredients) []*models.Recipe
-	INGREDIENTS(ingredients []string) []*models.Ingredients
+	AddRecipe(recipe *models.Recipe)
+	AddIngredients(ingredients ...*models.Ingredients)
+	AddInstructions(instructions ...*models.Instructions)
+	AddQuantities(quantities ...*models.Quantities)
+	AddTags(tags ...*models.Tags)
+	AddRecipeIngredients(recipeID string, ingredients []*models.Ingredients, quantities []*models.Quantities, length int)
+	FindRecipe(matches []*models.Ingredients) []*models.Recipe
 }
 
-//RecipeService recipe service
+//RecipeIndex index for recipe
+type RecipeIndex interface {
+	GetRecipes(ctx context.Context, index, qType string, conditional map[string]interface{}, offset, limit int) []models.TotalRecipe
+	QueryBuilder(ingredients ...string) map[string]interface{}
+}
+
+//RecipeService RecipeService.
 type RecipeService struct {
 	recipeStore RecipeStore
+	index       RecipeIndex
 }
 
-//NewRecipeService constructs new recipe service
-func NewRecipeService(recipeStore RecipeStore) *RecipeService {
+//NewRecipeService constructs NewRecipeService.
+func NewRecipeService(recipeStore RecipeStore, index RecipeIndex) *RecipeService {
 	return &RecipeService{
 		recipeStore: recipeStore,
+		index:       index,
 	}
 }
 
-//FIND finds matching recipes
-func (rs *RecipeService) FIND(ingredients []string) [][]*models.Recipe {
+//Search Searches ES Index for corresponding recipe
+func (rs *RecipeService) Search(ctx context.Context, ingredients []string) []models.TotalRecipe {
+	return rs.index.GetRecipes(ctx, "recipes", "recipe", rs.index.QueryBuilder(ingredients...), 0, 20)
+}
+
+//Find finds matching recipes from ingredients.
+func (rs *RecipeService) Find(ingredients []string) []models.TotalRecipe {
 
 	/* TODO - load dataset */
 	var dataset []string
@@ -33,7 +54,6 @@ func (rs *RecipeService) FIND(ingredients []string) [][]*models.Recipe {
 	associations := expand.NewAssociations(ingredients, dataset)
 	associations.Associate(0.2)
 
-	var recipes [][]*models.Recipe
 	for _, root := range associations.Roots {
 		var ingredients []*models.Ingredients
 		for _, ingredient := range root.AssociatedWords {
@@ -41,19 +61,29 @@ func (rs *RecipeService) FIND(ingredients []string) [][]*models.Recipe {
 				Ingredient: ingredient,
 			})
 		}
-		recipes = append(recipes, rs.recipeStore.FIND(ingredients))
 	}
 
-	return recipes
+	return nil
 }
 
-//INGREDIENTS create recipe model
-func (rs *RecipeService) INGREDIENTS(ingredients []string) []*models.Ingredients {
-	return rs.recipeStore.INGREDIENTS(ingredients)
+//NewRecipe creates new recipe.
+func (rs *RecipeService) NewRecipe(recipeName, description string, numIngredients int, cc models.CountryCode, ingredientList []models.IngredientsTie) {
+	recipeID := uuid.UUID()
+	rs.recipeStore.AddRecipe(&models.Recipe{
+		RecipeID:       recipeID,
+		Name:           recipeName,
+		Description:    description,
+		NumIngredients: numIngredients,
+		Country:        cc,
+	})
+	ingredients, quantities := models.MakeIngredientsAndQuantities(ingredientList...)
+	rs.recipeStore.AddIngredients(ingredients...)
+	rs.recipeStore.AddQuantities(quantities...)
+	rs.recipeStore.AddRecipeIngredients(recipeID, ingredients, quantities, numIngredients)
 }
 
-//IMAGE create recipe model
-func (rs *RecipeService) IMAGE(filename string) []*models.Ingredients {
+//Image creates recipe model from an image.
+func (rs *RecipeService) Image(filename string) []*models.Ingredients {
 	parsing := parsing.NewParser()
 	ingredients := parsing.Deconstruct(filename)
 
@@ -64,20 +94,4 @@ func (rs *RecipeService) IMAGE(filename string) []*models.Ingredients {
 		})
 	}
 	return search
-}
-
-//CREATEDELIVERY find location of closest ingredients
-func (rs *RecipeService) CREATEDELIVERY(ingredients ...string) {
-
-}
-
-//FINDLOCATION find location of closest ingredients
-func (rs *RecipeService) FINDLOCATION(ingredients ...string) {
-	for _, ingredient := range ingredients {
-		rs.findClosestStoreAtCheapestPrice(ingredient)
-	}
-}
-
-func (rs *RecipeService) findClosestStoreAtCheapestPrice(ingredient string) map[string]interface{} {
-	return nil
 }

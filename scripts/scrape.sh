@@ -4,7 +4,7 @@
 GOOGLE_CLOUD_RECIPES_BUCKET=recipez_recipes
 GOOGLE_CLOUD_FOOD_BUCKET=recipez_food
 
-UNPACK_AND_PORT=./scripts/port.py
+UNPACK_AND_PORT=./scripts/scrapers/port.py
 
 RECIPES_DATASET=https://storage.googleapis.com/recipe-box/recipes_raw.zip
 food_dataset=https://storage.googleapis.com/food_dataset.csv

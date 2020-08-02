@@ -2,68 +2,68 @@ package postgres
 
 import (
 	"github.com/Rahul12344/Recipes/models"
-	"github.com/Rahul12344/Recipes/util/uuid"
-	"github.com/jinzhu/gorm"
+	"github.com/Rahul12344/skelego/services/storage/sqlservice"
 )
 
-// RecipeStore contains db handling for recipe objects
-type RecipeStore struct {
-	client *gorm.DB
-}
-
 // NewRecipeStore inits Recipe
-func NewRecipeStore(client *gorm.DB) *RecipeStore {
+func NewRecipeStore(client sqlservice.ORMWrapper) *RecipeStore {
 	return &RecipeStore{
 		client: client,
 	}
 }
 
-func (rs *RecipeStore) create() {
-	/* TODO: Maybe change migration model to maybe define DB relationships */
-	rs.client.AutoMigrate(&models.Recipe{}, &models.RecipeIngredients{},
-		&models.Ingredients{}, &models.Instructions{}, &models.Quantities{},
-		&models.Tags{})
+//AddRecipe Creates new recipe.
+func (rs *RecipeStore) AddRecipe(recipe *models.Recipe) {
+	rs.client.ORM().Create(recipe)
 }
 
-//INSERT creates new recipe
-func (rs *RecipeStore) INSERT(recipe *models.Recipe, ingredients []*models.Ingredients, instructions []*models.Instructions, tags []*models.Tags, quantities []*models.Quantities) {
-	rs.client.Create(recipe)
-	for i := 0; i < len(ingredients); i++ {
-		if err := rs.client.Where("Ingredient = ?", ingredients[i].Ingredient).Find(&models.Ingredients{}); err != nil {
-			ingredients[i].IngredientID = uuid.UUID()
-			rs.client.Create(ingredients[i])
+//AddIngredients Adds ingredients to database
+func (rs *RecipeStore) AddIngredients(ingredients ...*models.Ingredients) {
+	for _, ingredient := range ingredients {
+		if rs.client.ORM().NewRecord(ingredient) {
+			rs.client.ORM().Create(ingredient)
 		}
-		if err := rs.client.Where("Quantity = ?", quantities[i].Quantity).Find(&models.Quantities{}); err != nil {
-			quantities[i].QuantityID = uuid.UUID()
-			rs.client.Create(quantities[i])
-		}
-
-		rs.client.Model(&recipe).Association("RecipeIngredients").Append(&models.RecipeIngredients{
-			IngredientID: ingredients[i].IngredientID,
-			QuantityID:   quantities[i].QuantityID,
-		})
-
 	}
 }
 
-// FIND finds matching recipes
-func (rs *RecipeStore) FIND(matches []*models.Ingredients) []*models.Recipe {
-	//var recipes []*models.RecipeIngredients
+//AddInstructions Adds instructions to database
+func (rs *RecipeStore) AddInstructions(instructions ...*models.Instructions) {
+	for _, instruction := range instructions {
+		rs.client.ORM().Create(instruction)
+	}
+}
 
-	currentRelation := rs.client.Table("recipe_ingredients")
+//AddQuantities Adds quantities to database
+func (rs *RecipeStore) AddQuantities(quantities ...*models.Quantities) {
+	for _, quantity := range quantities {
+		rs.client.ORM().Create(quantity)
+	}
+}
+
+//AddTags Adds tags to database
+func (rs *RecipeStore) AddTags(tags ...*models.Tags) {
+	for _, tag := range tags {
+		rs.client.ORM().Create(tag)
+	}
+}
+
+//AddRecipeIngredients Adds recipe ingredients to database
+func (rs *RecipeStore) AddRecipeIngredients(recipeID string, ingredients []*models.Ingredients, quantities []*models.Quantities, length int) {
+	for index := 0; index < length; index++ {
+		recipeIngredient := &models.RecipeIngredients{
+			RecipeID:     recipeID,
+			IngredientID: ingredients[index].IngredientID,
+			QuantityID:   quantities[index].QuantityID,
+		}
+		rs.client.ORM().Create(recipeIngredient)
+	}
+}
+
+// FindRecipe Finds matching recipes based on ingredient from Postgres.
+func (rs *RecipeStore) FindRecipe(matches []*models.Ingredients) []*models.Recipe {
+	currentRelation := rs.client.ORM().Table("recipe_ingredients")
 	for _, match := range matches {
 		currentRelation.Where("IngredientID = ?", match.IngredientID)
 	}
 	return nil
-}
-
-//INGREDIENTS create recipe model
-func (rs *RecipeStore) INGREDIENTS(ingredients []string) []*models.Ingredients {
-	var search []*models.Ingredients
-	for _, ingredient := range ingredients {
-		search = append(search, &models.Ingredients{
-			Ingredient: ingredient,
-		})
-	}
-	return search
 }

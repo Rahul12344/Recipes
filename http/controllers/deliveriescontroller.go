@@ -2,9 +2,9 @@ package controllers
 
 //DeliveryService delivery service
 type DeliveryService interface {
-	DELIVERIES(deliverer, recipient string, lat, lon, startLan, startLon float64, ingredients ...string)
-	COMPLETE(deliverer, recipient string, ingredients ...string)
-	DELETE(deliverer, recipient string, ingredients ...string)
+	Deliveries(deliverer, recipient string, lat, lon, startLan, startLon float64, ingredients ...string)
+	CompleteDelivery(deliverer, recipient string, ingredients ...string)
+	DeleteDelivery(deliverer, recipient string, ingredients ...string)
 }
 
 // DeliveryController controls delivery actions for users

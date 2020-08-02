@@ -14,11 +14,11 @@ db:
 run: db bin/bconnect test
 	./bin/$(EXEC)
 
-bin/bconnect:
-	go build -o bin/$(EXEC) *.go
+bin/recipes: clean
+	go build -o bin/$(EXEC) cmd/recipes/main.go
 
 clean:
-	rm -rf bin/BConnect-backend
+	rm -rf bin/Recipes
 
 test:
 	./test.sh

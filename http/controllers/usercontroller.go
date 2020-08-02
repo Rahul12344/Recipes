@@ -2,26 +2,25 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/Rahul12344/Recipes/models"
 	"github.com/Rahul12344/Recipes/util/curruser"
+	"github.com/Rahul12344/Recipes/util/hash"
 	"github.com/Rahul12344/Recipes/util/uuid"
 	"github.com/gorilla/mux"
-	"golang.org/x/crypto/bcrypt"
 )
 
 // UserService contains authorization functionality
 type UserService interface {
-	GET(username string, password string) (map[string]interface{}, string, string, time.Time, time.Time)
-	SET(email string, uuid string, userModded *models.RecipeUser) (map[string]interface{}, error)
-	PUT(user *models.RecipeUser) (bool, error)
-	DEL(username string, password string) (bool, error)
-	REFRESH(uuid string) (map[string]interface{}, string, time.Time)
-	ADD(uuid string, recipe *models.Recipe)
-	REMOVE(uuid string, recipe *models.Recipe)
+	GetUser(username string, password string) (map[string]interface{}, string, string, time.Time, time.Time)
+	SetUser(email string, uuid string, userModded *models.RecipeUser) (map[string]interface{}, error)
+	NewUser(user *models.RecipeUser) (bool, error)
+	DeleteUser(username string, password string) (bool, error)
+	RefreshToken(uuid string) (map[string]interface{}, string, time.Time)
+	AddRecipe(uuid string, recipe *models.Recipe)
+	RemoveRecipe(uuid string, recipe *models.Recipe)
 }
 
 // UserController controls user actions
@@ -53,7 +52,7 @@ func (uc *UserController) Login(w http.ResponseWriter, r *http.Request) {
 	var loginInfo models.RecipeUser
 	decoder := json.NewDecoder(r.Body)
 	decoder.Decode(&loginInfo)
-	resp, token, _, _, _ := uc.User.GET(loginInfo.Username, loginInfo.Password)
+	resp, token, _, _, _ := uc.User.GetUser(loginInfo.Username, loginInfo.Password)
 	if token != "" {
 		json.NewEncoder(w).Encode(resp)
 	}
@@ -66,19 +65,16 @@ func (uc *UserController) Signup(w http.ResponseWriter, r *http.Request) {
 	decoder.Decode(&userInfo)
 	var resp = map[string]interface{}{"status": false, "user": userInfo}
 
-	pass, err := bcrypt.GenerateFromPassword([]byte(userInfo.Password), bcrypt.DefaultCost)
-	if err != nil {
-		fmt.Println(err)
-	}
+	pass := hash.Hash(userInfo.Password)
 	userInfo.Password = string(pass)
 	userInfo.UserID = uuid.UUID()
 
-	status, _ := uc.User.PUT(&userInfo)
+	status, _ := uc.User.NewUser(&userInfo)
 	if status != true {
 		http.Error(w, "Error signing up", 500)
 		return
 	}
-	resp, token, _, _, _ := uc.User.GET(userInfo.Username, userInfo.Password)
+	resp, token, _, _, _ := uc.User.GetUser(userInfo.Username, userInfo.Password)
 	if token != "" {
 		json.NewEncoder(w).Encode(resp)
 	}
@@ -92,7 +88,7 @@ func (uc *UserController) AddRecipe(w http.ResponseWriter, r *http.Request) {
 
 	uuid := curruser.GetCurrUser(w, r)
 
-	uc.User.ADD(uuid, &recipe)
+	uc.User.AddRecipe(uuid, &recipe)
 }
 
 // RemoveRecipe removes recipe
@@ -103,5 +99,5 @@ func (uc *UserController) RemoveRecipe(w http.ResponseWriter, r *http.Request) {
 
 	uuid := curruser.GetCurrUser(w, r)
 
-	uc.User.REMOVE(uuid, &recipe)
+	uc.User.RemoveRecipe(uuid, &recipe)
 }

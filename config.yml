@@ -2,9 +2,17 @@ STORAGE:
   ENGINE: POSTGRES
   HOST: localhost
   PORT: 5432
-  USERNAME: recipe
-  NAME: recipez
+  NAME: recipes
+  USERNAME: recipez
+
+CACHE:
+  HOST: localhost
+  PORT: 6379
   PASSWORD: recipez
+  DB: recipez
+
+INDEX:
+  PORT: 9201
 
 SERVER:
   HOST: localhost

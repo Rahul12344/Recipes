@@ -1,48 +1,50 @@
 package services
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
 	"time"
 
 	"github.com/Rahul12344/Recipes/models"
-	"github.com/Rahul12344/Recipes/util/errors"
 	"github.com/dgrijalva/jwt-go"
 )
 
 //UserStore user store
 type UserStore interface {
-	GET(username string, password string) (*models.RecipeUser, *errors.Errors)
-	SET(email string, uuid string, userModded *models.RecipeUser) (map[string]interface{}, error)
-	PUT(user *models.RecipeUser) (bool, error)
-	DEL(username string, password string) (bool, error)
-	GETFROMUUID(uuid string) *models.RecipeUser
+	Get(username string, password string) (*models.RecipeUser, error)
+	Set(email string, uuid string, userModded *models.RecipeUser) (map[string]interface{}, error)
+	Add(user *models.RecipeUser) (bool, error)
+	Remove(username string, password string) (bool, error)
+	GetUserFromID(uuid string) *models.RecipeUser
+	AddRecipe(uuid string, recipe *models.Recipe)
+	RemoveRecipe(uuid string, recipe *models.Recipe)
 }
 
-//UserRecipeStore user recipe store
-type UserRecipeStore interface {
-	ADD(uuid string, recipe *models.Recipe)
-	REMOVE(uuid string, recipe *models.Recipe)
+//UserIndex Index for users
+type UserIndex interface {
+	AddUsers(recipes ...models.RecipeUser) error
+	GetUsers(ctx context.Context, index, qType string, conditional map[string]interface{}, offset, limit int) []models.RecipeUser
 }
 
 //UserService holds services for users
 type UserService struct {
-	userStore       UserStore
-	userRecipeStore UserRecipeStore
+	userStore UserStore
+	userIndex UserIndex
 }
 
 //NewUserService constructs new user service
-func NewUserService(userStore UserStore, userRecipeStore UserRecipeStore) *UserService {
+func NewUserService(userStore UserStore, userIndex UserIndex) *UserService {
 	return &UserService{
-		userStore:       userStore,
-		userRecipeStore: userRecipeStore,
+		userStore: userStore,
+		userIndex: userIndex,
 	}
 }
 
-//GET login
-func (as *UserService) GET(username string, password string) (map[string]interface{}, string, string, time.Time, time.Time) {
-	user, err := as.userStore.GET(username, password)
+//GetUser login
+func (as *UserService) GetUser(username string, password string) (map[string]interface{}, string, string, time.Time, time.Time) {
+	user, err := as.userStore.Get(username, password)
 	if err != nil {
 
 	}
@@ -112,24 +114,24 @@ func generateRandomBytes(n int) ([]byte, error) {
 	return b, nil
 }
 
-//SET sets categories
-func (as *UserService) SET(email string, uuid string, userModded *models.RecipeUser) (map[string]interface{}, error) {
-	return as.userStore.SET(email, uuid, userModded)
+//SetUser sets categories
+func (as *UserService) SetUser(email string, uuid string, userModded *models.RecipeUser) (map[string]interface{}, error) {
+	return as.userStore.Set(email, uuid, userModded)
 }
 
-//PUT signs user in
-func (as *UserService) PUT(user *models.RecipeUser) (bool, error) {
-	return as.userStore.PUT(user)
+//NewUser signs user in
+func (as *UserService) NewUser(user *models.RecipeUser) (bool, error) {
+	return as.userStore.Add(user)
 }
 
-//DEL delete user
-func (as *UserService) DEL(username string, password string) (bool, error) {
-	return as.userStore.DEL(username, password)
+//DeleteUser delete user
+func (as *UserService) DeleteUser(username string, password string) (bool, error) {
+	return as.userStore.Remove(username, password)
 }
 
-//REFRESH refresh token
-func (as *UserService) REFRESH(uuid string) (map[string]interface{}, string, time.Time) {
-	user := as.userStore.GETFROMUUID(uuid)
+//RefreshToken refresh token
+func (as *UserService) RefreshToken(uuid string) (map[string]interface{}, string, time.Time) {
+	user := as.userStore.GetUserFromID(uuid)
 	if user == nil {
 		var resp = map[string]interface{}{"status": false, "message": "UUID not found"}
 		return resp, "", time.Time{}
@@ -158,12 +160,12 @@ func (as *UserService) REFRESH(uuid string) (map[string]interface{}, string, tim
 	return resp, tokenString, expiresAt
 }
 
-//ADD add user recipe
-func (as *UserService) ADD(uuid string, recipe *models.Recipe) {
-	as.userRecipeStore.ADD(uuid, recipe)
+//AddRecipe add user recipe
+func (as *UserService) AddRecipe(uuid string, recipe *models.Recipe) {
+	as.userStore.AddRecipe(uuid, recipe)
 }
 
-//REMOVE removes user recipe
-func (as *UserService) REMOVE(uuid string, recipe *models.Recipe) {
-	as.userRecipeStore.REMOVE(uuid, recipe)
+//RemoveRecipe removes user recipe
+func (as *UserService) RemoveRecipe(uuid string, recipe *models.Recipe) {
+	as.userStore.RemoveRecipe(uuid, recipe)
 }

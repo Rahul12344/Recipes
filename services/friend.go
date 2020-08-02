@@ -4,9 +4,9 @@ import "github.com/Rahul12344/Recipes/models"
 
 //FriendStore friend store
 type FriendStore interface {
-	FOLLOW(uuid string, friendUUID string, optionalMsg string) (bool, error)
-	UNFOLLOW(uuid string, friendUUID string, optionalMsg string) (bool, error)
-	ACCEPT(currUUID string, friendUUID string) (*models.Friends, error)
+	Follow(uuid string, friendUUID string, optionalMsg string) (bool, error)
+	Unfollow(uuid string, friendUUID string, optionalMsg string) (bool, error)
+	Accept(currUUID string, friendUUID string) (*models.Friends, error)
 }
 
 //FriendService holds services for friends
@@ -21,17 +21,17 @@ func NewFriendService(friendStore FriendStore) *FriendService {
 	}
 }
 
-//FOLLOW follows user
-func (fs *FriendService) FOLLOW(uuid string, friendUUID string, optionalMsg string) (bool, error) {
-	return fs.friendStore.FOLLOW(uuid, friendUUID, optionalMsg)
+//Follow follows user
+func (fs *FriendService) Follow(uuid string, friendUUID string, optionalMsg string) (bool, error) {
+	return fs.friendStore.Follow(uuid, friendUUID, optionalMsg)
 }
 
-//UNFOLLOW unfollows user
-func (fs *FriendService) UNFOLLOW(uuid string, friendUUID string, optionalMsg string) (bool, error) {
-	return fs.friendStore.UNFOLLOW(uuid, friendUUID, optionalMsg)
+//Unfollow unfollows user
+func (fs *FriendService) Unfollow(uuid string, friendUUID string, optionalMsg string) (bool, error) {
+	return fs.friendStore.Unfollow(uuid, friendUUID, optionalMsg)
 }
 
-//ACCEPT accepts user
-func (fs *FriendService) ACCEPT(currUUID string, friendUUID string) (*models.Friends, error) {
-	return fs.friendStore.ACCEPT(currUUID, friendUUID)
+//Accept accepts user
+func (fs *FriendService) Accept(currUUID string, friendUUID string) (*models.Friends, error) {
+	return fs.friendStore.Accept(currUUID, friendUUID)
 }

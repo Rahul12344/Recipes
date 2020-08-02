@@ -1,9 +1,11 @@
 package recipes
 
 import (
+	"context"
 	"log"
 	"net/http"
-	"os"
+
+	"github.com/Rahul12344/skelego/services/index"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -12,49 +14,70 @@ import (
 	"github.com/Rahul12344/Recipes/middleware/authhandlers"
 	"github.com/Rahul12344/Recipes/services"
 	"github.com/Rahul12344/Recipes/storage/postgres"
-	"github.com/jinzhu/gorm"
+	"github.com/Rahul12344/Recipes/storage/postgres/schemas"
+	"github.com/Rahul12344/skelego"
+	"github.com/Rahul12344/skelego/services/storage/sqlservice"
 )
 
 //ExecuteServer start server
 func ExecuteServer(config Config) {
-	var postgresDB *gorm.DB
-	_, ok := os.LookupEnv("DATABASE_URL")
-	if ok {
-		postgresDB = postgres.Connect(true, "DATABASE_URL", config.Storage.Host,
-			config.Storage.Name,
-			config.Storage.Username,
-			config.Storage.Password)
-	}
-	if !ok {
-		postgresDB = postgres.Connect(false, "", config.Storage.Host,
-			config.Storage.Name,
-			config.Storage.Username,
-			config.Storage.Password)
-	}
+	logger := skelego.NewLogger()
+	conf := skelego.NewConfig("config", logger, ".", "..")
 
-	userStore := postgres.NewUserStore(postgresDB)
-	recipeStore := postgres.NewRecipeStore(postgresDB)
-	userRecipeStore := postgres.NewUserRecipeStore(postgresDB)
-	friendStore := postgres.NewFriendStore(postgresDB)
-	deliveryStore := postgres.NewDeliveryStore(postgresDB)
+	pDB := sqlservice.NewORM()
+	pDB.Configurifier(conf)
+	es := index.NewIndex()
+	es.Configurifier(conf)
 
-	postgres.CreatePostgresTables(userStore, userRecipeStore, friendStore, recipeStore, deliveryStore)
+	pDB.Connect(context.Background(), conf, logger)
+	es.Connect(context.Background(), conf, logger)
+	pDB.Start(context.Background(), logger)
 
-	userService := services.NewUserService(userStore, userRecipeStore)
-	friendService := services.NewFriendService(friendStore)
-	recipeService := services.NewRecipeService(recipeStore)
+	postgres.Migrate(logger, schemas.NewUserSchema(pDB), schemas.NewRecipeSchema(pDB), schemas.NewUserRecipesSchema(pDB),
+		schemas.NewItemSchema(pDB), schemas.NewIngredientsSchema(pDB), schemas.NewInventorySchema(pDB),
+		schemas.NewInstructionsSchema(pDB), schemas.NewTagsSchema(pDB), schemas.NewQuantitiesSchema(pDB),
+		schemas.NewRecipeIngredientsSchema(pDB), schemas.NewDeliverySchema(pDB), schemas.NewChatRoomSchema(pDB))
 
-	uc := controllers.NewUserController(userService)
-	fc := controllers.NewFriendController(friendService)
-	rc := controllers.NewRecipeController(recipeService)
-	ic := controllers.NewImageController()
+	defer pDB.Stop(context.Background(), logger)
 
-	r, s := setupHandlers()
-	uc.Setup(r)
+	userStore := postgres.NewUserStore(pDB)
+	userService = services.NewUserService(userStore)
+
+	/*
+		userStore := postgres.NewUserStore(postgresDB)
+		recipeStore := postgres.NewRecipeStore(postgresDB)
+		userRecipeStore := postgres.NewUserRecipeStore(postgresDB)
+		friendStore := postgres.NewFriendStore(postgresDB)
+		deliveryStore := postgres.NewDeliveryStore(postgresDB)
+		itemStore := postgres.NewItemStore(postgresDB)
+
+		postgres.CreatePostgresTables(userStore, userRecipeStore, friendStore, recipeStore, deliveryStore, itemStore)
+		logger.LogEvent("Migrated models to database.")
+
+		userService := services.NewUserService(userStore, userRecipeStore)
+		friendService := services.NewFriendService(friendStore)
+		recipeService := services.NewRecipeService(recipeStore)
+
+		logger.LogEvent("Starting internal services.")
+
+		uc := controllers.NewUserController(userService)
+		fc := controllers.NewFriendController(friendService)
+		rc := controllers.NewRecipeController(recipeService)
+		ic := controllers.NewImageController()
+	*/
+	cc := controllers.NewChatController()
+
+	logger.LogEvent("Chat rooms opened on web sockets")
+	go cc.Rooms.Run()
+
+	r, _ := setupHandlers()
+	/*uc.Setup(r)
 	rc.Setup(r)
 	uc.VerifiedSetup(s)
 	fc.Setup(s)
-	ic.Setup(s)
+	ic.Setup(s)*/
+
+	logger.LogEvent("Starting controllers.")
 
 	log.Fatal(http.ListenAndServe(":8080", handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization", "Access-Control-Allow-Origin"}),
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(r)))

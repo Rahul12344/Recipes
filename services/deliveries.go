@@ -2,14 +2,16 @@ package services
 
 import "github.com/Rahul12344/Recipes/models"
 
-//DeliveryStore delivery store
-type DeliveryStore interface {
-	DELIVERY(deliveries ...*models.Delivery)
-	REMOVE(deliveries ...*models.Delivery)
+//Order contains individual order info
+type Order struct {
+	ItemID   string
+	Quantity int
 }
 
-//IngredientStore ingredient store
-type IngredientStore interface {
+//DeliveryStore delivery store
+type DeliveryStore interface {
+	AddDelivery(deliveries ...*models.Delivery)
+	RemoveDelivery(deliveries ...*models.Delivery)
 }
 
 //DeliveryService delivery service
@@ -24,12 +26,13 @@ func NewDeliveryService(deliveryStore DeliveryStore) *DeliveryService {
 	}
 }
 
-//DELIVERIES create deliveries
-func (ds *DeliveryService) DELIVERIES(deliverer, recipient string, lat, lon, startLan, startLon float64, ingredients ...string) {
+//Deliveries create deliveries
+func (ds *DeliveryService) Deliveries(deliverer, recipient string, lat, lon, startLan, startLon float64, orders ...Order) {
 	var deliveries []*models.Delivery
-	for _, ingredient := range ingredients {
+	for _, order := range orders {
 		deliveries = append(deliveries, &models.Delivery{
-			ItemID:      ingredient,
+			ItemID:      order.ItemID,
+			Quantity:    order.Quantity,
 			DelivereeID: recipient,
 			DelivererID: deliverer,
 			DeliveryLat: lat,
@@ -38,11 +41,11 @@ func (ds *DeliveryService) DELIVERIES(deliverer, recipient string, lat, lon, sta
 			StartLon:    startLon,
 		})
 	}
-	ds.deliveryStore.DELIVERY(deliveries...)
+	ds.deliveryStore.AddDelivery(deliveries...)
 }
 
-//COMPLETE completes deliveries
-func (ds *DeliveryService) COMPLETE(deliverer, recipient string, ingredients ...string) {
+//CompleteDelivery completes deliveries
+func (ds *DeliveryService) CompleteDelivery(deliverer, recipient string, ingredients ...string) {
 	var deliveries []*models.Delivery
 	for _, ingredient := range ingredients {
 		deliveries = append(deliveries, &models.Delivery{
@@ -51,11 +54,11 @@ func (ds *DeliveryService) COMPLETE(deliverer, recipient string, ingredients ...
 			DelivererID: deliverer,
 		})
 	}
-	ds.deliveryStore.REMOVE(deliveries...)
+	ds.deliveryStore.RemoveDelivery(deliveries...)
 }
 
-//DELETE deletes deliveries
-func (ds *DeliveryService) DELETE(deliverer, recipient string, ingredients ...string) {
+//DeleteDelivery deletes deliveries
+func (ds *DeliveryService) DeleteDelivery(deliverer, recipient string, ingredients ...string) {
 	var deliveries []*models.Delivery
 	for _, ingredient := range ingredients {
 		deliveries = append(deliveries, &models.Delivery{
@@ -64,5 +67,5 @@ func (ds *DeliveryService) DELETE(deliverer, recipient string, ingredients ...st
 			DelivererID: deliverer,
 		})
 	}
-	ds.deliveryStore.REMOVE(deliveries...)
+	ds.deliveryStore.RemoveDelivery(deliveries...)
 }

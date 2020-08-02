@@ -10,9 +10,9 @@ import (
 
 //FriendService friend service
 type FriendService interface {
-	FOLLOW(uuid string, friendUUID string, optionalMsg string) (bool, error)
-	UNFOLLOW(uuid string, friendUUID string, optionalMsg string) (bool, error)
-	ACCEPT(currUUID string, friendUUID string) (*models.Friends, error)
+	Follow(uuid string, friendUUID string, optionalMsg string) (bool, error)
+	Unfollow(uuid string, friendUUID string, optionalMsg string) (bool, error)
+	Accept(currUUID string, friendUUID string) (*models.Friends, error)
 }
 
 // FriendController controls friend actions for users
@@ -39,7 +39,7 @@ func (fs *FriendController) Follow(w http.ResponseWriter, r *http.Request) {
 	friendRequest := models.Friends{}
 	decoder := json.NewDecoder(r.Body)
 	decoder.Decode(&friendRequest)
-	fs.Friends.FOLLOW(friendRequest.UserID, friendRequest.FriendID, friendRequest.FriendRequestMessage)
+	fs.Friends.Follow(friendRequest.UserID, friendRequest.FriendID, friendRequest.FriendRequestMessage)
 }
 
 //AcceptFollowRequest follows
@@ -47,7 +47,7 @@ func (fs *FriendController) AcceptFollowRequest(w http.ResponseWriter, r *http.R
 	friendRequest := models.Friends{}
 	decoder := json.NewDecoder(r.Body)
 	decoder.Decode(&friendRequest)
-	fs.Friends.ACCEPT(friendRequest.UserID, friendRequest.FriendID)
+	fs.Friends.Accept(friendRequest.UserID, friendRequest.FriendID)
 }
 
 //Unfollow unfollows
@@ -55,5 +55,5 @@ func (fs *FriendController) Unfollow(w http.ResponseWriter, r *http.Request) {
 	friendRequest := models.Friends{}
 	decoder := json.NewDecoder(r.Body)
 	decoder.Decode(&friendRequest)
-	fs.Friends.UNFOLLOW(friendRequest.UserID, friendRequest.FriendID, friendRequest.FriendRequestMessage)
+	fs.Friends.Unfollow(friendRequest.UserID, friendRequest.FriendID, friendRequest.FriendRequestMessage)
 }

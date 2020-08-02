@@ -2,36 +2,26 @@ package postgres
 
 import (
 	"github.com/Rahul12344/Recipes/models"
-	"github.com/jinzhu/gorm"
+	"github.com/Rahul12344/skelego/services/storage/sqlservice"
 )
 
-//DeliveryStore stores deliveries
-type DeliveryStore struct {
-	client *gorm.DB
-}
-
 // NewDeliveryStore Postgresql client
-func NewDeliveryStore(client *gorm.DB) *DeliveryStore {
+func NewDeliveryStore(client sqlservice.ORMWrapper) *DeliveryStore {
 	return &DeliveryStore{
 		client: client,
 	}
 }
 
-func (ds *DeliveryStore) create() {
-	/* TODO: Maybe change migration model to maybe define DB relationships */
-	ds.client.AutoMigrate(&models.Delivery{})
-}
-
-// DELIVERY initiates delivery
-func (ds *DeliveryStore) DELIVERY(deliveries ...*models.Delivery) {
+// AddDelivery Initiates delivery
+func (ds *DeliveryStore) AddDelivery(deliveries ...*models.Delivery) {
 	for _, delivery := range deliveries {
-		ds.client.Create(delivery)
+		ds.client.ORM().Create(delivery)
 	}
 }
 
-// REMOVE removes deliveries
-func (ds *DeliveryStore) REMOVE(deliveries ...*models.Delivery) {
+// RemoveDelivery Removes deliveries
+func (ds *DeliveryStore) RemoveDelivery(deliveries ...*models.Delivery) {
 	for _, delivery := range deliveries {
-		ds.client.Delete(delivery)
+		ds.client.ORM().Delete(delivery)
 	}
 }
