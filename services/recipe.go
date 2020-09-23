@@ -7,6 +7,7 @@ import (
 	"github.com/Rahul12344/Recipes/util/expand"
 	"github.com/Rahul12344/Recipes/util/parsing"
 	"github.com/Rahul12344/Recipes/util/uuid"
+	"github.com/Rahul12344/skelego"
 )
 
 //RecipeStore RecipeStore.
@@ -30,13 +31,15 @@ type RecipeIndex interface {
 type RecipeService struct {
 	recipeStore RecipeStore
 	index       RecipeIndex
+	logger      skelego.Logging
 }
 
 //NewRecipeService constructs NewRecipeService.
-func NewRecipeService(recipeStore RecipeStore, index RecipeIndex) *RecipeService {
+func NewRecipeService(recipeStore RecipeStore, index RecipeIndex, logger skelego.Logging) *RecipeService {
 	return &RecipeService{
 		recipeStore: recipeStore,
 		index:       index,
+		logger:      logger,
 	}
 }
 

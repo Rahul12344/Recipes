@@ -3,14 +3,17 @@ package postgres
 import (
 	"time"
 
+	"github.com/Rahul12344/skelego"
+
 	"github.com/Rahul12344/Recipes/models"
 	"github.com/Rahul12344/skelego/services/storage/sqlservice"
 )
 
 // NewFriendStore Postgresql client
-func NewFriendStore(client sqlservice.ORMWrapper) *FriendStore {
+func NewFriendStore(client sqlservice.ORMWrapper, logger skelego.Logging) *FriendStore {
 	return &FriendStore{
 		client: client,
+		logger: logger,
 	}
 }
 

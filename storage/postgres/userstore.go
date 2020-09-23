@@ -2,14 +2,16 @@ package postgres
 
 import (
 	"github.com/Rahul12344/Recipes/models"
+	"github.com/Rahul12344/skelego"
 	"github.com/Rahul12344/skelego/services/storage/sqlservice"
 	"golang.org/x/crypto/bcrypt"
 )
 
 // NewUserStore Postgresql client
-func NewUserStore(client sqlservice.ORMWrapper) *UserStore {
+func NewUserStore(client sqlservice.ORMWrapper, logger skelego.Logging) *UserStore {
 	return &UserStore{
 		client: client,
+		logger: logger,
 	}
 }
 
@@ -23,6 +25,7 @@ func (us *UserStore) findUser(email, password string) (*models.RecipeUser, error
 	user := &models.RecipeUser{}
 
 	if err := us.client.ORM().Where("Email = ?", email).First(user).Error; err != nil {
+		us.logger.LogError("Error retrieving user: %s", email)
 		return nil, nil
 	}
 
@@ -47,9 +50,9 @@ func (us *UserStore) Add(user *models.RecipeUser) (bool, error) {
 }
 
 // Set sets updated fields
-func (us *UserStore) Set(email string, uuid string, userModded *models.RecipeUser) (map[string]interface{}, error) {
+func (us *UserStore) Set(uuid string, userModded *models.RecipeUser) (*models.RecipeUser, error) {
 	var user models.RecipeUser
-	if err := us.client.ORM().Where("EMAIL = ? AND UUID = ?", email, uuid).Find(&user); err != nil {
+	if err := us.client.ORM().Where("UUID = ?", uuid).Find(&user); err != nil {
 	}
 
 	fname := userModded.FirstName
@@ -76,13 +79,12 @@ func (us *UserStore) Set(email string, uuid string, userModded *models.RecipeUse
 	user.Lon = lon
 	us.client.ORM().Save(&user)
 
-	if err := us.client.ORM().Where("EMAIL = ? AND UUID = ?", email, uuid).Find(&user); err != nil {
+	if err := us.client.ORM().Where("UUID = ?", uuid).Find(&user); err != nil {
+		us.logger.LogError("Error modifying user: %s", uuid)
+		return nil, nil
 	}
 
-	var resp = map[string]interface{}{"status": false, "message": "logged in"}
-	resp["mod_user"] = user
-
-	return resp, nil
+	return &user, nil
 }
 
 // Remove dels clients
@@ -110,6 +112,7 @@ func (us *UserStore) RemoveRecipe(userID string, recipe *models.Recipe) {
 func (us *UserStore) GetUserFromID(uuid string) *models.RecipeUser {
 	user := &models.RecipeUser{}
 	if err := us.client.ORM().Where("UUID = ?", uuid).First(user).Error; err != nil {
+		us.logger.LogError("Error getting user from id: %s", uuid)
 		return nil
 	}
 

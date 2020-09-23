@@ -15,7 +15,7 @@ import (
 // UserService contains authorization functionality
 type UserService interface {
 	GetUser(username string, password string) (map[string]interface{}, string, string, time.Time, time.Time)
-	SetUser(email string, uuid string, userModded *models.RecipeUser) (map[string]interface{}, error)
+	SetUser(uuid string, userModded *models.RecipeUser) (map[string]interface{}, error)
 	NewUser(user *models.RecipeUser) (bool, error)
 	DeleteUser(username string, password string) (bool, error)
 	RefreshToken(uuid string) (map[string]interface{}, string, time.Time)
@@ -78,6 +78,18 @@ func (uc *UserController) Signup(w http.ResponseWriter, r *http.Request) {
 	if token != "" {
 		json.NewEncoder(w).Encode(resp)
 	}
+}
+
+// Modify modifies logged in users
+func (uc *UserController) Modify(w http.ResponseWriter, r *http.Request) {
+	var userInfo models.RecipeUser
+	decoder := json.NewDecoder(r.Body)
+	decoder.Decode(&userInfo)
+
+	uuid := curruser.GetCurrUser(w, r)
+
+	resp, _ := uc.User.SetUser(uuid, &userInfo)
+	json.NewEncoder(w).Encode(resp)
 }
 
 // AddRecipe adds recipe

@@ -8,13 +8,14 @@ import (
 	"time"
 
 	"github.com/Rahul12344/Recipes/models"
+	"github.com/Rahul12344/skelego"
 	"github.com/dgrijalva/jwt-go"
 )
 
 //UserStore user store
 type UserStore interface {
 	Get(username string, password string) (*models.RecipeUser, error)
-	Set(email string, uuid string, userModded *models.RecipeUser) (map[string]interface{}, error)
+	Set(uuid string, userModded *models.RecipeUser) (*models.RecipeUser, error)
 	Add(user *models.RecipeUser) (bool, error)
 	Remove(username string, password string) (bool, error)
 	GetUserFromID(uuid string) *models.RecipeUser
@@ -32,13 +33,15 @@ type UserIndex interface {
 type UserService struct {
 	userStore UserStore
 	userIndex UserIndex
+	logger    skelego.Logging
 }
 
 //NewUserService constructs new user service
-func NewUserService(userStore UserStore, userIndex UserIndex) *UserService {
+func NewUserService(userStore UserStore, userIndex UserIndex, logger skelego.Logging) *UserService {
 	return &UserService{
 		userStore: userStore,
 		userIndex: userIndex,
+		logger:    logger,
 	}
 }
 
@@ -115,8 +118,11 @@ func generateRandomBytes(n int) ([]byte, error) {
 }
 
 //SetUser sets categories
-func (as *UserService) SetUser(email string, uuid string, userModded *models.RecipeUser) (map[string]interface{}, error) {
-	return as.userStore.Set(email, uuid, userModded)
+func (as *UserService) SetUser(uuid string, userModded *models.RecipeUser) (map[string]interface{}, error) {
+	user, err := as.userStore.Set(uuid, userModded)
+	var resp = map[string]interface{}{"status": false, "message": "logged in"}
+	resp["mod_user"] = user
+	return resp, err
 }
 
 //NewUser signs user in

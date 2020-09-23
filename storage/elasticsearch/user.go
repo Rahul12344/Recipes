@@ -2,16 +2,18 @@ package elasticsearch
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/Rahul12344/Recipes/models"
+	"github.com/Rahul12344/Recipes/storage/elasticsearch/queries"
+	"github.com/Rahul12344/skelego"
 	"github.com/Rahul12344/skelego/services/index"
 )
 
 //NewUserIndex Create new User index
-func NewUserIndex(index index.Index) *UserIndex {
+func NewUserIndex(index index.Index, logger skelego.Logging) *UserIndex {
 	return &UserIndex{
-		index: index,
+		index:  index,
+		logger: logger,
 	}
 }
 
@@ -25,24 +27,11 @@ func (ui *UserIndex) GetUsers(ctx context.Context, index, qType string, conditio
 	if !ui.verifySchema(conditional) {
 		return nil
 	}
-	var users []models.RecipeUser
-	searchResult, _ := ui.index.ElasticSearch().Search().
-		Index(index).
-		Type(qType).
-		Query(ui.index.Query(conditional)).
-		From(offset).
-		Size(limit).
-		Do(ctx)
-	ui.index.Query(conditional)
-	for _, hit := range searchResult.Hits.Hits {
-		var user models.RecipeUser
-		err := json.Unmarshal(hit.Source, &user)
-		if err != nil {
-			return nil
-		}
-		users = append(users, user)
+	hits := ui.index.SearchIndex(ctx, "users", ui.index.Query(queries.CreateRecipeQueryForArgs(conditional), ui.logger), ui.logger)
+	if hits == nil {
+		return nil
 	}
-	return users
+	return nil
 }
 
 func (ui *UserIndex) verifySchema(conditional map[string]interface{}) bool {

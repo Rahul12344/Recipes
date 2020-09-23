@@ -2,13 +2,15 @@ package postgres
 
 import (
 	"github.com/Rahul12344/Recipes/models"
+	"github.com/Rahul12344/skelego"
 	"github.com/Rahul12344/skelego/services/storage/sqlservice"
 )
 
 // NewItemStore Postgresql client
-func NewItemStore(client sqlservice.ORMWrapper) *ItemStore {
+func NewItemStore(client sqlservice.ORMWrapper, logger skelego.Logging) *ItemStore {
 	return &ItemStore{
 		client: client,
+		logger: logger,
 	}
 }
 

@@ -2,13 +2,15 @@ package postgres
 
 import (
 	"github.com/Rahul12344/Recipes/models"
+	"github.com/Rahul12344/skelego"
 	"github.com/Rahul12344/skelego/services/storage/sqlservice"
 )
 
 // NewRecipeStore inits Recipe
-func NewRecipeStore(client sqlservice.ORMWrapper) *RecipeStore {
+func NewRecipeStore(client sqlservice.ORMWrapper, logger skelego.Logging) *RecipeStore {
 	return &RecipeStore{
 		client: client,
+		logger: logger,
 	}
 }
 

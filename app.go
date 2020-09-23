@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/Rahul12344/skelego/services/index"
+	"github.com/Rahul12344/Recipes/storage/elasticsearch"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -16,6 +16,7 @@ import (
 	"github.com/Rahul12344/Recipes/storage/postgres"
 	"github.com/Rahul12344/Recipes/storage/postgres/schemas"
 	"github.com/Rahul12344/skelego"
+	"github.com/Rahul12344/skelego/services/index"
 	"github.com/Rahul12344/skelego/services/storage/sqlservice"
 )
 
@@ -40,8 +41,16 @@ func ExecuteServer(config Config) {
 
 	defer pDB.Stop(context.Background(), logger)
 
-	userStore := postgres.NewUserStore(pDB)
-	userService = services.NewUserService(userStore)
+	userIndex := elasticsearch.NewUserIndex(es, logger)
+	recipeIndex := elasticsearch.NewRecipeIndex(es, logger)
+
+	userStore := postgres.NewUserStore(pDB, logger)
+	recipeStore := postgres.NewRecipeStore(pDB, logger)
+	deliveryStore := postgres.NewDeliveryStore(pDB, logger)
+
+	services.NewUserService(userStore, userIndex, logger)
+	services.NewRecipeService(recipeStore, recipeIndex, logger)
+	services.NewDeliveryService(deliveryStore, logger)
 
 	/*
 		userStore := postgres.NewUserStore(postgresDB)

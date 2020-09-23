@@ -1,6 +1,9 @@
 package services
 
-import "github.com/Rahul12344/Recipes/models"
+import (
+	"github.com/Rahul12344/Recipes/models"
+	"github.com/Rahul12344/skelego"
+)
 
 //CrowdSourcer finds crowd sourced items
 type CrowdSourcer interface {
@@ -12,12 +15,14 @@ type CrowdSourcer interface {
 //SourcerService sources
 type SourcerService struct {
 	crowdSourcer CrowdSourcer
+	logger       skelego.Logging
 }
 
 //NewSourcerService constructs new sourver service
-func NewSourcerService(cs CrowdSourcer) *SourcerService {
+func NewSourcerService(cs CrowdSourcer, logger skelego.Logging) *SourcerService {
 	return &SourcerService{
 		crowdSourcer: cs,
+		logger:       logger,
 	}
 }
 

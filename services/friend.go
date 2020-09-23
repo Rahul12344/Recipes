@@ -1,6 +1,9 @@
 package services
 
-import "github.com/Rahul12344/Recipes/models"
+import (
+	"github.com/Rahul12344/Recipes/models"
+	"github.com/Rahul12344/skelego"
+)
 
 //FriendStore friend store
 type FriendStore interface {
@@ -12,12 +15,14 @@ type FriendStore interface {
 //FriendService holds services for friends
 type FriendService struct {
 	friendStore FriendStore
+	logger      skelego.Logging
 }
 
 //NewFriendService constructs new friend service
-func NewFriendService(friendStore FriendStore) *FriendService {
+func NewFriendService(friendStore FriendStore, logger skelego.Logging) *FriendService {
 	return &FriendService{
 		friendStore: friendStore,
+		logger:      logger,
 	}
 }
 

@@ -1,6 +1,9 @@
 package services
 
-import "github.com/Rahul12344/Recipes/models"
+import (
+	"github.com/Rahul12344/Recipes/models"
+	"github.com/Rahul12344/skelego"
+)
 
 //Order contains individual order info
 type Order struct {
@@ -17,12 +20,14 @@ type DeliveryStore interface {
 //DeliveryService delivery service
 type DeliveryService struct {
 	deliveryStore DeliveryStore
+	logger        skelego.Logging
 }
 
 //NewDeliveryService constructs new delivery service
-func NewDeliveryService(deliveryStore DeliveryStore) *DeliveryService {
+func NewDeliveryService(deliveryStore DeliveryStore, logger skelego.Logging) *DeliveryService {
 	return &DeliveryService{
 		deliveryStore: deliveryStore,
+		logger:        logger,
 	}
 }
 
